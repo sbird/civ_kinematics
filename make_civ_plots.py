@@ -19,10 +19,8 @@ outdir = path.join(myname.base, "civ_plots/")
 def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
     """Plot density"""
     plt.sca(ax[0])
-    xoff = hspec.plot_spectrum(elem,ion,1548,num, flux=False, color=color)
-    #ax[0].axes.set_yscale('log')
+    xoff = hspec.plot_spectrum(elem,ion,1548,num, flux=True, color=color)
     xlim = plt.xlim()
-    plt.ylim(0,15)
     ax[0].xaxis.set_label_position('top')
     ax[0].xaxis.tick_top()
     voff += xoff
@@ -32,7 +30,7 @@ def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
     #plt.ylim(ymin=1e-9)
     plt.sca(ax[2])
     xscale = dxlim*hspec.velfac/xlim[1]
-    #hspec.plot_den_to_tau(elem, ion, num, thresh = 1e-9, xlim=200,voff=voff, xscale=xscale)
+    hspec.plot_den_to_tau(elem, ion, num, thresh = 1e-9, xlim=200,voff=voff, xscale=xscale)
     ax[2].axes.get_xaxis().set_visible(False)
     plt.xlabel("")
     plt.xlim(xlim)
@@ -52,7 +50,7 @@ for nn in np.arange(0,7):
     matplotlib.rc('lines', linewidth=1.5)
     plot_den(ahalo, ax, nn+100, color="red")
     plot_den(ahalo, ax, nn)
-    ax[0].text(-500, 3,"offset: "+str(np.floor(np.sqrt(np.sum((ahalo.cofm[nn,:] - ahalo.cofm[nn+100,:])**2,axis=1)))))
+    ax[0].text(-500, 0.2,"offset (prop kpc): "+str(np.floor(np.sqrt(np.sum(((ahalo.cofm[nn] - ahalo.cofm[nn+100])**2)))*0.33333/0.7)))
     save_figure(path.join(outdir,str(nn)+"_cosmo"+"_CIV_spec"))
     plt.clf()
     matplotlib.rc_file_defaults()
