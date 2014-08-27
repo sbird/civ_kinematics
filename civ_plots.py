@@ -20,7 +20,7 @@ class CIVPlot(ps.PlottingSpectra):
         offsets *= self.atime/self.hubble
         return offsets
 
-    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins):
+    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, plot_quartiles = False):
         """Helper function plotting a derived something as a function of radius"""
         center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
         mean_plot_arr = np.zeros(np.size(radial_bins)-1)
@@ -35,8 +35,9 @@ class CIVPlot(ps.PlottingSpectra):
             upper[ii] = np.percentile(arr_bin,75)
             lower[ii] = np.percentile(arr_bin,25)
         plt.plot(center, mean_plot_arr, color=color, ls=ls)
-        plt.plot(center, lower, color=color, ls=ls2)
-        plt.plot(center, upper, color=color, ls=ls2)
+        if plot_quartiles:
+            plt.plot(center, lower, color=color, ls=ls2)
+            plt.plot(center, upper, color=color, ls=ls2)
         return (center, mean_plot_arr)
 
     def plot_eq_width_ratio(self, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
@@ -61,22 +62,24 @@ class CIVPlot(ps.PlottingSpectra):
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         return self._plot_radial(covering, color, ls, ls2, radial_bins)
 
-    def plot_flux_vel_offset(self, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+    def plot_flux_vel_offset(self, eq_thresh = 0.2, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
         midpoint = self.NumLos/2
-        offsets = np.empty(midpoint)
         tau = self.get_tau(elem, ion, line)
-        for ii in np.arange(midpoint):
+        eq_width = self.equivalent_width(elem, ion, line)
+        ind = np.where(eq_width[midpoint:] > eq_thresh)
+        offsets = np.empty(np.size(ind))
+        for (t1, t2) in zip(tau[0:midpoint, :][ind], tau[midpoint:,:][ind]):
             #First rotate lines so that the DLA is in the center.
-            maxx = np.where(tau[ii,:] == np.max(tau[ii,:]))[0][0]
-            rtau1 = np.roll(tau[ii,:], maxx)
-            rtau2 = np.roll(tau[ii+midpoint,:], maxx)
+            maxx = np.where(t1 == np.max(t1))[0][0]
+            rtau1 = np.roll(t1, maxx)
+            rtau2 = np.roll(t2, maxx)
             v1 = self._get_flux_weigh_vel(rtau1)
             v2 = self._get_flux_weigh_vel(rtau2)
             offsets[ii] = (v2 - v1)*self.dvbin
-        return self._plot_radial(offsets, color, ls, ls2, radial_bins)
+        return self._plot_radial(offsets, color, ls, ls2, radial_bins, plot_quartiles=True)
 
     def _get_flux_weigh_vel(self, tau):
         """Compute the flux weighted velocity of a sightline"""
