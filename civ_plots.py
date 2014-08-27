@@ -84,8 +84,23 @@ class CIVPlot(ps.PlottingSpectra):
             elif vdiff < - self.nbins/2:
                 vdiff = (vdiff+self.nbins/2)
             offsets.append(vdiff*self.dvbin)
-        offsets = np.array(offsets)
-        return self._plot_radial(offsets, color, ls, ls2, radial_bins, plot_quartiles=True)
+        vel_offsets = np.array(offsets)
+        center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
+        mean_plot_arr = np.zeros(np.size(radial_bins)-1)
+        upper = np.zeros(np.size(radial_bins)-1)
+        lower = np.zeros(np.size(radial_bins)-1)
+        offsets = self.get_offsets()[ind]
+        for ii in np.arange(np.size(radial_bins)-1):
+            arr_bin = vel_offsets[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
+            if np.size(arr_bin) == 0:
+                continue
+            mean_plot_arr[ii] = np.mean(arr_bin)
+            upper[ii] = np.percentile(arr_bin,75)
+            lower[ii] = np.percentile(arr_bin,25)
+        plt.plot(center, mean_plot_arr, color=color, ls=ls)
+        plt.plot(center, lower, color=color, ls=ls2)
+        plt.plot(center, upper, color=color, ls=ls2)
+        return (center, mean_plot_arr)
 
     def _get_flux_weigh_vel(self, tau):
         """Compute the flux weighted velocity of a sightline"""
