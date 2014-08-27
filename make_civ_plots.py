@@ -8,7 +8,7 @@ matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-import plot_spectra as ps
+import civ_plots as ps
 import os.path as path
 import myname
 import numpy as np
@@ -37,7 +37,17 @@ def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
 
 name = myname.get_name(5, box=10)
 
-ahalo = ps.PlottingSpectra(5, name, savefile="nr_dla_spectra.hdf5")
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5")
+
+ahalo.plot_eq_width_ratio()
+save_figure(path.join(outdir,"CIV_eq_ratio"))
+plt.clf()
+ahalo.plot_covering_fraction()
+save_figure(path.join(outdir,"CIV_coverfrac"))
+plt.clf()
+ahalo.plot_flux_vel_offset()
+save_figure(path.join(outdir,"CIV_vel_offset"))
+plt.clf()
 
 for nn in np.arange(0,7):
     gs = gridspec.GridSpec(9,2)
@@ -54,4 +64,5 @@ for nn in np.arange(0,7):
     save_figure(path.join(outdir,str(nn)+"_cosmo"+"_CIV_spec"))
     plt.clf()
     matplotlib.rc_file_defaults()
+
 
