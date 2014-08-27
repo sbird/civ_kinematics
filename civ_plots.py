@@ -20,24 +20,17 @@ class CIVPlot(ps.PlottingSpectra):
         offsets *= self.atime/self.hubble
         return offsets
 
-    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, plot_quartiles = False):
+    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins):
         """Helper function plotting a derived something as a function of radius"""
         center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
         mean_plot_arr = np.zeros(np.size(radial_bins)-1)
-        upper = np.zeros(np.size(radial_bins)-1)
-        lower = np.zeros(np.size(radial_bins)-1)
         offsets = self.get_offsets()
         for ii in np.arange(np.size(radial_bins)-1):
             arr_bin = plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
             if np.size(arr_bin) == 0:
                 continue
             mean_plot_arr[ii] = np.mean(arr_bin)
-            upper[ii] = np.percentile(arr_bin,75)
-            lower[ii] = np.percentile(arr_bin,25)
         plt.plot(center, mean_plot_arr, color=color, ls=ls)
-        if plot_quartiles:
-            plt.plot(center, lower, color=color, ls=ls2)
-            plt.plot(center, upper, color=color, ls=ls2)
         return (center, mean_plot_arr)
 
     def plot_eq_width_ratio(self, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
@@ -94,7 +87,7 @@ class CIVPlot(ps.PlottingSpectra):
             arr_bin = vel_offsets[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
             if np.size(arr_bin) == 0:
                 continue
-            mean_plot_arr[ii] = np.mean(arr_bin)
+            mean_plot_arr[ii] = np.median(arr_bin)
             upper[ii] = np.percentile(arr_bin,75)
             lower[ii] = np.percentile(arr_bin,25)
         plt.plot(center, mean_plot_arr, color=color, ls=ls)
