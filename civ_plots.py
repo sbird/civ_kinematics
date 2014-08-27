@@ -56,7 +56,8 @@ class CIVPlot(ps.PlottingSpectra):
         """
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
-        covering = np.where(eq_width[midpoint:] > eq_thresh)
+        covering = np.zeros_like(eq_width[midpoint:])
+        covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         return self._plot_radial(covering, color, ls, ls2, radial_bins)
 
     def plot_flux_vel_offset(self, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
