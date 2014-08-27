@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class CIVPlot(ps.PlottingSpectra):
     """Class to compute vrious statistics specific to the CIV near DLAs"""
-    def_radial_bins = np.logspace(25, 200, 25)
+    def_radial_bins = np.logspace(np.log10(25), np.log10(200), 25)
     def get_offsets(self):
         """Get the offsets of each line from its partner"""
         midpoint = self.NumLos/2
