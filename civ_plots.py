@@ -70,7 +70,7 @@ class CIVPlot(ps.PlottingSpectra):
         tau = self.get_tau(elem, ion, line)
         eq_width = self.equivalent_width(elem, ion, line)
         ind = np.where(eq_width[midpoint:] > eq_thresh)
-        offsets = np.empty(np.size(ind))
+        offsets = []
         for (t1, t2) in zip(tau[0:midpoint, :][ind], tau[midpoint:,:][ind]):
             #First rotate lines so that the DLA is in the center.
             maxx = np.where(t1 == np.max(t1))[0][0]
@@ -78,7 +78,13 @@ class CIVPlot(ps.PlottingSpectra):
             rtau2 = np.roll(t2, maxx)
             v1 = self._get_flux_weigh_vel(rtau1)
             v2 = self._get_flux_weigh_vel(rtau2)
-            offsets[ii] = (v2 - v1)*self.dvbin
+            vdiff = v2 - v1
+            if vdiff > self.nbins/2:
+                vdiff = (vdiff-self.nbins/2)
+            elif vdiff < - self.nbins/2:
+                vdiff = (vdiff+self.nbins/2)
+            offsets.append(vdiff*self.dvbin)
+        offsets = np.array(offsets)
         return self._plot_radial(offsets, color, ls, ls2, radial_bins, plot_quartiles=True)
 
     def _get_flux_weigh_vel(self, tau):
