@@ -69,7 +69,7 @@ class CIVPlot(ps.PlottingSpectra):
         tau = self.get_tau(elem, ion, line)
         for ii in np.arange(midpoint):
             #First rotate lines so that the DLA is in the center.
-            maxx = np.where(tau[ii,:] == np.max(tau[ii,:]))
+            maxx = np.where(tau[ii,:] == np.max(tau[ii,:]))[0][0]
             rtau1 = np.roll(tau[ii,:], maxx)
             rtau2 = np.roll(tau[ii+midpoint,:], maxx)
             v1 = self._get_flux_weigh_vel(rtau1)
