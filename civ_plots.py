@@ -15,7 +15,7 @@ class CIVPlot(ps.PlottingSpectra):
         axx = set([0,1,2])
         offsets = np.empty(midpoint)
         for ii in np.arange(midpoint):
-            ax = axx - set(self.axis[ii])
+            ax = axx - set([self.axis[ii]])
             offsets[ii] = np.sqrt(np.sum((self.cofm[ii,ax] - self.cofm[ii+midpoint,ax])**2))
         return offsets
 

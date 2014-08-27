@@ -25,7 +25,7 @@ class DLANrSpectra(spectra.Spectra):
         axx = set([0,1,2])
         rands = self.get_rand_pert(numlos,25,200)
         for i in self.arange(0,numlos):
-            ax = axx - set(axis[numlos+i])
+            ax = axx - set([axis[numlos+i]])
             cofm[numlos+i, ax] += rands[i]
         spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=True)
 
