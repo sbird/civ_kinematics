@@ -51,7 +51,7 @@ class DLANrSpectra(spectra.Spectra):
 
 if __name__ == "__main__":
     simbase = "/home/spb/data/Cosmo/Cosmo5_V6/L10n512/output/"
-    halo = DLANrSpectra(5,simbase,100, 2)
+    halo = DLANrSpectra(5,simbase,1000, 2)
     halo.get_tau("C",4,1548, force_recompute=True)
     halo.get_density("C",4)
     halo.get_velocity("C",4)
