@@ -10,13 +10,14 @@ class CIVPlot(ps.PlottingSpectra):
     """Class to compute vrious statistics specific to the CIV near DLAs"""
     def_radial_bins = np.logspace(np.log10(25), np.log10(200), 10)
     def get_offsets(self):
-        """Get the offsets of each line from its partner"""
+        """Get the offsets of each line in proper kpc from its partner"""
         midpoint = self.NumLos/2
         axx = set([0,1,2])
         offsets = np.empty(midpoint)
         for ii in np.arange(midpoint):
             ax = list(axx - set([self.axis[ii]]))
             offsets[ii] = np.sqrt(np.sum((self.cofm[ii,ax] - self.cofm[ii+midpoint,ax])**2))
+        offsets *= self.atime/self.hubble
         return offsets
 
     def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins):
