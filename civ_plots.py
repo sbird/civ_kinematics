@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class CIVPlot(ps.PlottingSpectra):
     """Class to compute vrious statistics specific to the CIV near DLAs"""
-    def_radial_bins = np.logspace(np.log10(25), np.log10(200), 25)
+    def_radial_bins = np.logspace(np.log10(25), np.log10(200), 20)
     def get_offsets(self):
         """Get the offsets of each line from its partner"""
         midpoint = self.NumLos/2
@@ -22,14 +22,17 @@ class CIVPlot(ps.PlottingSpectra):
     def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins):
         """Helper function plotting a derived something as a function of radius"""
         center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
-        mean_plot_arr = np.empty(np.size(radial_bins)-1)
-        upper = np.empty(np.size(radial_bins)-1)
-        lower = np.empty(np.size(radial_bins)-1)
+        mean_plot_arr = np.zeros(np.size(radial_bins)-1)
+        upper = np.zeros(np.size(radial_bins)-1)
+        lower = np.zeros(np.size(radial_bins)-1)
         offsets = self.get_offsets()
         for ii in np.arange(np.size(radial_bins)-1):
-            mean_plot_arr[ii] = np.mean(plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))])
-            upper[ii] = np.percentile(plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))],75)
-            lower[ii] = np.percentile(plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))],25)
+            arr_bin = plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
+            if np.size(arr_bin) == 0:
+                continue
+            mean_plot_arr[ii] = np.mean(arr_bin)
+            upper[ii] = np.percentile(arr_bin,75)
+            lower[ii] = np.percentile(arr_bin,25)
         plt.plot(center, mean_plot_arr, color=color, ls=ls)
         plt.plot(center, lower, color=color, ls=ls2)
         plt.plot(center, upper, color=color, ls=ls2)
