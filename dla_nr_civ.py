@@ -64,7 +64,7 @@ class DLANrSpectra(spectra.Spectra):
             #How many sightlines in this bin?
             #The proportion from the observed survey, but at least 1 and no more
             #than we have left in the bag
-            this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1), num - total))
+            this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1)), num - total))
             rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
         cofm = np.empty((num, 2), dtype=np.float64)
         cofm[:,0]=rr*np.cos(phi)
