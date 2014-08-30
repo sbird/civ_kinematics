@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 #We will compute mean values in each radial bin
 
 class CIVPlot(ps.PlottingSpectra):
-    """Class to compute vrious statistics specific to the CIV near DLAs"""
-    def_radial_bins = np.logspace(np.log10(25), np.log10(200), 10)
+    """Class to compute various statistics specific to the CIV near DLAs"""
+    def_radial_bins = np.logspace(np.log10(25), np.log10(200), 5)
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
         midpoint = self.NumLos/2
@@ -54,6 +54,14 @@ class CIVPlot(ps.PlottingSpectra):
         covering = np.zeros_like(eq_width[midpoint:])
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         return self._plot_radial(covering, color, ls, ls2, radial_bins)
+
+    def plot_eq_width(self, color="blue", ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+        """
+        Plot the equivalent width of a given pair line above a threshold in radial bins
+        """
+        eq_width = self.equivalent_width(elem, ion, line)
+        midpoint = self.NumLos/2
+        return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins)
 
     def plot_flux_vel_offset(self, eq_thresh = 0.2, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
