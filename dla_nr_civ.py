@@ -23,7 +23,7 @@ class DLANrSpectra(spectra.Spectra):
         axis = np.concatenate((dla_axis[select], dla_axis[select]))
         #Add a small perturbation to the sightline cofm
         axx = set([0,1,2])
-        rands = self.get_rand_pert(numlos,25,200)
+        rands = self.get_weighted_pert(numlos)
         for i in np.arange(0,numlos):
             ax = axx - set([axis[numlos+i]])
             cofm[numlos+i, list(ax)] += rands[i]
@@ -44,6 +44,28 @@ class DLANrSpectra(spectra.Spectra):
         phi = 2*math.pi*np.random.random_sample(num)
         rr = (maxradius-minradius)*np.random.random_sample(num) + minradius
         #Add them to halo centers
+        cofm = np.empty((num, 2), dtype=np.float64)
+        cofm[:,0]=rr*np.cos(phi)
+        cofm[:,1]=rr*np.sin(phi)
+        return cofm
+
+    def get_weighted_perp(self, num):
+        """Get a random perturbation with a radius weighted by the number of
+           quasars in radial bins in the DLA-CGM survey."""
+        rperp = np.loadtxt("CGMofDLAs_Rperp.dat")
+        rbins = np.min(rperp),25,50,75,100,125,150,175,200,225,np.max(rperp)
+        (hists, rbins) = np.histogram(rperp, rbins)
+        conv = self.hubble/self.atime
+        rbins *= conv
+        phi = 2*math.pi*np.random.random_sample(num)
+        rr = np.empty_like(phi)
+        total = 0
+        for ii in xrange(np.size(hists)):
+            #How many sightlines in this bin?
+            #The proportion from the observed survey, but at least 1 and no more
+            #than we have left in the bag
+            this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1), num - total))
+            rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
         cofm = np.empty((num, 2), dtype=np.float64)
         cofm[:,0]=rr*np.cos(phi)
         cofm[:,1]=rr*np.sin(phi)
