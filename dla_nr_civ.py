@@ -23,7 +23,7 @@ class DLANrSpectra(spectra.Spectra):
         axis = np.concatenate((dla_axis[select], dla_axis[select]))
         #Add a small perturbation to the sightline cofm
         axx = set([0,1,2])
-        rands = self.get_weighted_pert(numlos)
+        rands = self.get_weighted_perp(numlos)
         for i in np.arange(0,numlos):
             ax = axx - set([axis[numlos+i]])
             cofm[numlos+i, list(ax)] += rands[i]
