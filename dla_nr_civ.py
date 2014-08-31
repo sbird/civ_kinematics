@@ -66,6 +66,7 @@ class DLANrSpectra(spectra.Spectra):
             #than we have left in the bag
             this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1)), num - total))
             rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
+            total+=this
         cofm = np.empty((num, 2), dtype=np.float64)
         cofm[:,0]=rr*np.cos(phi)
         cofm[:,1]=rr*np.sin(phi)
