@@ -61,12 +61,12 @@ save_figure(path.join(outdir,"CIV_vel_offset"))
 plt.clf()
 
 offsets = ahalo.get_offsets()
+rbins = [7.4,25,50,75,100,125,150,175,200,225,270]
 plt.hist(offsets,rbins)
-rbins = [np.min(rperp),25,50,75,100,125,150,175,200,225,np.max(rperp)]
 save_figure(path.join(outdir,"CIV_r_offset"))
 plt.clf()
 
-if False:
+if True: #False:
     for nn in np.arange(0,7):
         gs = gridspec.GridSpec(9,2)
         ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
