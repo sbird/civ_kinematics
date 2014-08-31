@@ -60,6 +60,12 @@ plt.ylabel(r"$v_\mathrm{pair} - v_\mathrm{DLA}$ (km/s)")
 save_figure(path.join(outdir,"CIV_vel_offset"))
 plt.clf()
 
+offsets = ahalo.get_offsets()
+plt.hist(offsets,rbins)
+rbins = [np.min(rperp),25,50,75,100,125,150,175,200,225,np.max(rperp)]
+save_figure(path.join(outdir,"CIV_r_offset"))
+plt.clf()
+
 if False:
     for nn in np.arange(0,7):
         gs = gridspec.GridSpec(9,2)
@@ -72,7 +78,8 @@ if False:
         matplotlib.rc('lines', linewidth=1.5)
         plot_den(ahalo, ax, nn+100, color="red")
         plot_den(ahalo, ax, nn)
-        ax[0].text(-500, 0.2,"offset (prop kpc): "+str(np.floor(np.sqrt(np.sum(((ahalo.cofm[nn] - ahalo.cofm[nn+100])**2)))*0.33333/0.7)))
+        offsets = ahalo.get_offsets()
+        ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
         save_figure(path.join(outdir,str(nn)+"_cosmo"+"_CIV_spec"))
         plt.clf()
         matplotlib.rc_file_defaults()
