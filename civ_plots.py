@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 class CIVPlot(ps.PlottingSpectra):
     """Class to compute various statistics specific to the CIV near DLAs"""
-    def_radial_bins = np.logspace(np.log10(7.5), np.log10(250), 10)
+    def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
+    color=None
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
         midpoint = self.NumLos/2
@@ -30,43 +31,51 @@ class CIVPlot(ps.PlottingSpectra):
             if np.size(arr_bin) == 0:
                 continue
             mean_plot_arr[ii] = np.mean(arr_bin)
-        plt.plot(center, mean_plot_arr, color=color, ls=ls)
+        plt.plot(center, mean_plot_arr, color=color, ls=ls, label=self.label)
         return (center, mean_plot_arr)
 
-    def plot_eq_width_ratio(self, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+    def plot_eq_width_ratio(self, color=None, ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Compute a histogram of the ratios of equivalent widths in pairs of spectra.
 
         Returns:
             (v, f_table) - v (binned in log) and corresponding f(N)
         """
+        if color == None:
+            color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ratio = eq_width[midpoint:]/eq_width[0:midpoint]
         return self._plot_radial(ratio, color, ls, ls2, radial_bins)
 
-    def plot_covering_fraction(self, eq_thresh = 0.2, color="blue", ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+    def plot_covering_fraction(self, eq_thresh = 0.2, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
+        if color == None:
+            color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         covering = np.zeros_like(eq_width[midpoint:])
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         return self._plot_radial(covering, color, ls, ls2, radial_bins)
 
-    def plot_eq_width(self, color="blue", ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+    def plot_eq_width(self, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Plot the equivalent width of a given pair line above a threshold in radial bins
         """
+        if color == None:
+            color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins)
 
-    def plot_flux_vel_offset(self, eq_thresh = 0.2, color="blue", ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
+    def plot_flux_vel_offset(self, eq_thresh = 0.2, color=None, ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
+        if color == None:
+            color=self.color
         midpoint = self.NumLos/2
         tau = self.get_tau(elem, ion, line)
         eq_width = self.equivalent_width(elem, ion, line)
@@ -98,7 +107,7 @@ class CIVPlot(ps.PlottingSpectra):
             mean_plot_arr[ii] = np.median(arr_bin)
             upper[ii] = np.percentile(arr_bin,75)
             lower[ii] = np.percentile(arr_bin,25)
-        plt.plot(center, mean_plot_arr, color=color, ls=ls)
+        plt.plot(center, mean_plot_arr, color=color, ls=ls, label=self.label)
         plt.plot(center, lower, color=color, ls=ls2)
         plt.plot(center, upper, color=color, ls=ls2)
         return (center, mean_plot_arr)
