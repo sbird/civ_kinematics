@@ -77,16 +77,18 @@ def do_stuff(snap, path):
     """Make lines"""
     halo = DLANrSpectra(snap,path,1000, 2)
     halo.get_tau("C",4,1548, force_recompute=True)
+    halo.get_tau("C",-1,1548, force_recompute=True)
     halo.get_density("C",4)
+    halo.get_density("C",2)
+    halo.get_density("C",-1)
     halo.get_velocity("C",4)
     halo.get_density("H",1)
     halo.save_file()
 
 if __name__ == "__main__":
-#     simbase = myname.get_name(5, box=10)
-#     do_stuff(5, simbase)
-#     for ss in (1, 3, 4, 7, 9):
-    for ss in (4,):
+    simbase = myname.get_name(5, box=10)
+     do_stuff(5, simbase)
+    for ss in (1, 3, 4, 7, 9):
         simbase = myname.get_name(ss, box=25)
         do_stuff(5, simbase)
 
