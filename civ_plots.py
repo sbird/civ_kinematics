@@ -48,6 +48,12 @@ class CIVPlot(ps.PlottingSpectra):
         ratio = eq_width[midpoint:]/eq_width[0:midpoint]
         return self._plot_radial(ratio, color, ls, ls2, radial_bins)
 
+    def plot_colden_ratio(self, color=None, ls="-",ls2="--", elem="C", ion=4,radial_bins = def_radial_bins):
+        """Column density plot; fraction of total in each ion"""
+        totC = np.sum(self.get_col_density(elem,-1),axis=1)
+        CIV = np.sum(self.get_col_density(elem,ion),axis=1)
+        return self._plot_radial(CIV/totC, color, ls, ls2, radial_bins)
+
     def plot_covering_fraction(self, eq_thresh = 0.2, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
