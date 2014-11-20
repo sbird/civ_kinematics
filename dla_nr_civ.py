@@ -76,10 +76,13 @@ class DLANrSpectra(spectra.Spectra):
 def do_stuff(snap, path):
     """Make lines"""
     halo = DLANrSpectra(snap,path,1000, 2)
-    halo.get_tau("C",4,1548, force_recompute=True)
-    halo.get_tau("C",-1,1548, force_recompute=True)
+    halo.get_tau("C",4,1548, force_recompute=False)
+    halo.get_tau("C",-1,1548, force_recompute=False)
     halo.get_density("C",4)
+    halo.get_density("C",3)
     halo.get_density("C",2)
+    halo.get_density("C",1)
+    halo.get_density("C",5)
     halo.get_density("C",-1)
     halo.get_velocity("C",4)
     halo.get_density("H",1)

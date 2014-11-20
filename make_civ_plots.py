@@ -108,8 +108,11 @@ ahalos[1].color="pink"
 do_plots("ion",ahalos)
 
 #Column density plot
-ahalos[0].plot_colden_ratio(color="grey",elem="C",ion=4)
-ahalos[0].plot_colden_ratio(color="pink",elem="C",ion=2)
+ahalos[0].plot_colden_ratio(color="grey",elem="C",ion=4,label="CIV")
+ahalos[0].plot_colden_ratio(color="pink",elem="C",ion=2, label="CII")
+ahalos[0].plot_colden_ratio(color="green",elem="C",ion=3, label="CIII")
+ahalos[0].plot_colden_ratio(color="brown",elem="C",ion=5, label="CV")
+plt.legend(loc='upper center', ncol=4)
 save_figure(path.join(outdir,"ion_C_colden_ratio"))
 plt.clf()
 
