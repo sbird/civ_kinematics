@@ -19,6 +19,8 @@ colors = {1:"purple", 3:"green", 7:"blue", 9:"red", 4:"gold"}
 
 outdir = path.join(myname.base, "civ_plots/")
 
+print "Plots at ",outdir
+
 def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
     """Plot density"""
     plt.sca(ax[0])
@@ -49,7 +51,7 @@ class CIPlot(ps.CIVPlot):
     def plot_flux_vel_offset(self, eq_thresh = 0.2, elem="C", ion=-1, line=1548):
         return ps.CIVPlot.plot_flux_vel_offset(self, eq_thresh = eq_thresh, elem=elem, ion=ion, line=line)
 
-def do_plots(name, ahalos):
+def do_civ_plots(name, ahalos):
     """Make a bunch of plots"""
     for ahalo in ahalos:
         ahalo.plot_eq_width_ratio()
@@ -64,7 +66,6 @@ def do_plots(name, ahalos):
         ahalo.plot_eq_width()
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW(CIV)")
-    plt.legend()
     CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
     plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o')
     save_figure(path.join(outdir,name+"_CIV_eq_width"))
@@ -89,32 +90,82 @@ def do_plots(name, ahalos):
     save_figure(path.join(outdir,name+"_CIV_vel_offset"))
     plt.clf()
 
-    for ahalo in ahalos:
-        offsets = ahalo.get_offsets()
-        rbins = [7.4,25,50,75,100,125,150,175,200,225,270]
-        plt.hist(offsets,rbins)
+def plot_r_offsets(ahalo):
+    """Plot the positions of the sightlines relative to DLAs"""
+    offsets = ahalo.get_offsets()
+    rbins = [7.4,25,50,75,100,125,150,175,200,225,270]
+    plt.hist(offsets,rbins, label=ahalo.label)
     plt.legend()
-    save_figure(path.join(outdir,name+"_CIV_r_offset"))
+    save_figure(path.join(outdir,"CIV_r_offset"))
     plt.clf()
+
+def do_other_ion_plots(name, ahalos):
+    """Make equivalent widht plots for various low ion species"""
+    for ahalo in ahalos:
+        ahalo.plot_eq_width(label="CIV 1548")
+        ahalo.plot_eq_width(color="pink", elem="C", ion=2, line=1334, label="CII 1334")
+        ahalo.plot_eq_width(color="green", elem="Si", ion=2, line=1526, label="SiII 1526")
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"EW")
+    CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
+    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o', label="")
+    plt.legend()
+    save_figure(path.join(outdir,name+"_low_ion_eq_width"))
+    plt.clf()
+
+    for ahalo in ahalos:
+        ahalo.plot_covering_fraction(label="CIV 1548")
+        ahalo.plot_covering_fraction(color="pink", elem="C", ion=2, line=1334, label="CII 1334")
+        ahalo.plot_covering_fraction(color="green", elem="Si", ion=2, line=1526, label="SiII 1526")
+        ahalo.plot_covering_fraction_colden(color="black", elem="H", ion=1, label="F(LLS)")
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(W > 0.2 \AA)$")
+    CGM_c = np.loadtxt("CGMofDLAs_CfCIV.dat")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]])
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_low_ion_coverfrac"))
+    plt.clf()
+
+
+
 
 name = myname.get_name(5, box=10)
 
 ahalos = []
-ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5"))
+ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL"))
 ahalos[0].color = "grey"
-ahalos.append(CIPlot(5, name, savefile="nr_dla_spectra.hdf5"))
+ahalos.append(CIPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL CALL"))
 ahalos[1].color="pink"
 
-do_plots("ion",ahalos)
+plot_r_offsets(ahalos[0])
 
-#Column density plot
-ahalos[0].plot_colden_ratio(color="grey",elem="C",ion=4,label="CIV")
-ahalos[0].plot_colden_ratio(color="pink",elem="C",ion=2, label="CII")
-ahalos[0].plot_colden_ratio(color="green",elem="C",ion=3, label="CIII")
-ahalos[0].plot_colden_ratio(color="brown",elem="C",ion=5, label="CV")
-plt.legend(loc='upper center', ncol=4)
-save_figure(path.join(outdir,"ion_C_colden_ratio"))
-plt.clf()
+do_civ_plots("ion",ahalos)
+
+do_other_ion_plots("ion", [ahalos[0],])
+
+#Column density plots
+def rel_c_colden(ahalo):
+    """Column density for different carbon ions"""
+    ahalo.plot_colden_ratio(color="grey",elem="C",ion=4,label="CIV")
+    ahalo.plot_colden_ratio(color="pink",elem="C",ion=2, label="CII")
+    ahalo.plot_colden_ratio(color="green",elem="C",ion=3, label="CIII")
+    ahalo.plot_colden_ratio(color="brown",elem="C",ion=5, label="CV")
+    plt.legend(loc='upper center', ncol=4)
+    save_figure(path.join(outdir,"ion_C_colden_ratio"))
+    plt.clf()
+
+def rel_h_colden(ahalo):
+    ahalo.plot_colden_ratio(color="grey",elem="C",ion=2,elem2="H",ion2=1, label="CII/HI")
+    ahalo.plot_colden_ratio(color="pink",elem="C",ion=4,elem2="H",ion2=1, label="CIV/HI")
+    plt.legend(loc='lower center', ncol=4)
+    plt.yscale('log')
+    save_figure(path.join(outdir,"ion_CHI_colden_ratio"))
+    plt.clf()
+
+
+rel_c_colden(ahalos[0])
+rel_h_colden(ahalos[0])
 
 ahalos = []
 ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5"))
@@ -125,7 +176,7 @@ for ss in (1,3,4,7,9):
     ahalo.color=colors[ss]
     ahalos.append(ahalo)
 
-do_plots("feed",ahalos)
+do_civ_plots("feed",ahalos)
 
 if True: #False:
     for nn in np.arange(0,7):
@@ -141,7 +192,8 @@ if True: #False:
         plot_den(ahalo, ax, nn)
         offsets = ahalo.get_offsets()
         ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
-        save_figure(path.join(outdir,str(nn)+"_cosmo"+"_CIV_spec"))
+        odir = path.join(outdir, "spectra")
+        save_figure(path.join(odir,str(nn)+"_cosmo"+"_CIV_spec"))
         plt.clf()
         matplotlib.rc_file_defaults()
 
