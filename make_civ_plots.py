@@ -53,6 +53,19 @@ class CIPlot(ps.CIVPlot):
 
 def do_civ_plots(name, ahalos):
     """Make a bunch of plots"""
+    CIV_eq_ratio(name, ahalos)
+    CIV_vel_offset(name, ahalos)
+    generic_coverfrac("CIV", "C", 4, 1548, name, ahalos)
+    generic_coverfrac("SiII", "Si", 2, 1526, name, ahalos)
+    HI_coverfrac(name, ahalos)
+    generic_eq_width("CII", "C", 2, 1334, name, ahalos)
+    generic_eq_width("CIV", "C", 4, 1548, name, ahalos)
+    generic_eq_width("SiII", "Si", 2, 1526, name, ahalos)
+    #generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
+    #generic_eq_width("HI", "H", 1, 1216, name, ahalos)
+
+def CIV_eq_ratio(name, ahalos):
+    """Carbon IV equivalent width ratio"""
     for ahalo in ahalos:
         ahalo.plot_eq_width_ratio()
     plt.xlabel("r perp (kpc)")
@@ -62,26 +75,45 @@ def do_civ_plots(name, ahalos):
     save_figure(path.join(outdir,name+"_CIV_eq_ratio"))
     plt.clf()
 
+def generic_eq_width(ionname, elem, ion, line, name, ahalos):
+    """Plot eq. width distribution"""
     for ahalo in ahalos:
-        ahalo.plot_eq_width()
+        ahalo.plot_eq_width(elem=elem ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"EW(CIV)")
-    CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
-    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o')
-    save_figure(path.join(outdir,name+"_CIV_eq_width"))
+    plt.ylabel(r"EW("+ionname+" "+str(line)+")")
+    CGM_w = np.loadtxt("CGMofDLAs_avgW"+ionname+".dat")
+    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o',ecolor="black")
+    save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
     plt.clf()
 
+def generic_coverfrac(ionname, elem, ion, line, name, ahalos):
+    """Plot covering fraction"""
     for ahalo in ahalos:
-        ahalo.plot_covering_fraction()
+        ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(W > 0.2 \AA)$")
-    CGM_c = np.loadtxt("CGMofDLAs_CfCIV.dat")
-    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]])
+    plt.ylabel(r"$F(W_{"+str(line)+"} > 0.2 \AA)$")
+    CGM_c = np.loadtxt("CGMofDLAs_Cf"+ionname+".dat")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]],ecolor="black")
     plt.ylim(0,1.0)
     plt.legend()
-    save_figure(path.join(outdir,name+"_CIV_coverfrac"))
+    save_figure(path.join(outdir,name+"_"+ionname+"_coverfrac"))
     plt.clf()
 
+def HI_coverfrac(name, ahalos):
+    """CIV covering fraction"""
+    for ahalo in ahalos:
+        ahalo.plot_covering_fraction_colden(elem="H", ion=1)
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(LLS)$")
+    CGM_c = np.loadtxt("CGMofDLAs_Cfothick.dat")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,50,117.5,200],[50,117.5,200,300]-CGM_c[:,0]],ecolor="black")
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_LLS_coverfrac"))
+    plt.clf()
+
+def CIV_vel_offset(name, ahalos):
+    """Velocity offset of CIV from the DLAs"""
     for ahalo in ahalos:
         ahalo.plot_flux_vel_offset()
     plt.xlabel("r perp (kpc)")
@@ -99,37 +131,6 @@ def plot_r_offsets(ahalo):
     save_figure(path.join(outdir,"CIV_r_offset"))
     plt.clf()
 
-def do_other_ion_plots(name, ahalos):
-    """Make equivalent widht plots for various low ion species"""
-    for ahalo in ahalos:
-        ahalo.plot_eq_width(label="CIV 1548")
-        ahalo.plot_eq_width(color="pink", elem="C", ion=2, line=1334, label="CII 1334")
-        ahalo.plot_eq_width(color="green", elem="Si", ion=2, line=1526, label="SiII 1526")
-    plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"EW")
-    CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
-    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o', label="")
-    plt.legend()
-    save_figure(path.join(outdir,name+"_low_ion_eq_width"))
-    plt.clf()
-
-    for ahalo in ahalos:
-        ahalo.plot_covering_fraction(label="CIV 1548")
-        ahalo.plot_covering_fraction(color="pink", elem="C", ion=2, line=1334, label="CII 1334")
-        ahalo.plot_covering_fraction(color="green", elem="Si", ion=2, line=1526, label="SiII 1526")
-        ahalo.plot_covering_fraction_colden(color="black", elem="H", ion=1, label="F(LLS)")
-    plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(W > 0.2 \AA)$")
-    CGM_c = np.loadtxt("CGMofDLAs_CfCIV.dat")
-    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]])
-    plt.ylim(0,1.0)
-    plt.legend()
-    save_figure(path.join(outdir,name+"_low_ion_coverfrac"))
-    plt.clf()
-
-
-
-
 name = myname.get_name(5, box=10)
 
 ahalos = []
@@ -141,8 +142,6 @@ ahalos[1].color="pink"
 plot_r_offsets(ahalos[0])
 
 do_civ_plots("ion",ahalos)
-
-do_other_ion_plots("ion", [ahalos[0],])
 
 #Column density plots
 def rel_c_colden(ahalo):
@@ -162,7 +161,6 @@ def rel_h_colden(ahalo):
     plt.yscale('log')
     save_figure(path.join(outdir,"ion_CHI_colden_ratio"))
     plt.clf()
-
 
 rel_c_colden(ahalos[0])
 rel_h_colden(ahalos[0])

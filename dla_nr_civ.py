@@ -77,9 +77,11 @@ def do_stuff(snap, path):
     """Make lines"""
     halo = DLANrSpectra(snap,path,1000, 2)
     halo.get_tau("C",4,1548, force_recompute=False)
+    halo.get_tau("H",1,1216, force_recompute=False)
     halo.get_tau("C",-1,1548, force_recompute=False)
     halo.get_tau("C",2,1334, force_recompute=False)
     halo.get_tau("Si",2,1526, force_recompute=False)
+    halo.get_tau("Si",4,1393, force_recompute=False)
     halo.get_density("C",4)
     halo.get_density("C",3)
     halo.get_density("C",2)
