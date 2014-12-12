@@ -70,7 +70,7 @@ class CIVPlot(ps.PlottingSpectra):
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         return self._plot_radial(covering, color, ls, ls2, radial_bins, label=label)
 
-    def plot_covering_fraction_colden(self, cd_thresh = 1e17, color=None, ls="-", elem="H", ion=1, radial_bins = def_radial_bins, label=None):
+    def plot_covering_fraction_colden(self, cd_thresh = 10**(17.2), color=None, ls="-", elem="H", ion=1, radial_bins = def_radial_bins, label=None):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
