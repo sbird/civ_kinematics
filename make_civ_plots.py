@@ -40,17 +40,6 @@ def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
     plt.xlabel("")
     plt.xlim(xlim)
 
-class CIPlot(ps.CIVPlot):
-    """Override functions so that total C is the default"""
-    def plot_eq_width_ratio(self, color=None, ls="-", elem="C", ion=-1, line=1548):
-        return ps.CIVPlot.plot_eq_width_ratio(self, color=color, ls=ls, elem=elem, ion=ion, line=line)
-    def plot_covering_fraction(self, eq_thresh = 0.2, elem="C", ion=-1, line=1548):
-        return ps.CIVPlot.plot_covering_fraction(self, eq_thresh = eq_thresh, elem=elem, ion=ion, line=line)
-    def plot_eq_width(self, elem="C", ion=-1, line=1548):
-        return ps.CIVPlot.plot_eq_width(self, elem=elem, ion=ion, line=line)
-    def plot_flux_vel_offset(self, eq_thresh = 0.2, elem="C", ion=-1, line=1548):
-        return ps.CIVPlot.plot_flux_vel_offset(self, eq_thresh = eq_thresh, elem=elem, ion=ion, line=line)
-
 def do_civ_plots(name, ahalos):
     """Make a bunch of plots"""
     CIV_eq_ratio(name, ahalos)
@@ -78,11 +67,14 @@ def CIV_eq_ratio(name, ahalos):
 def generic_eq_width(ionname, elem, ion, line, name, ahalos):
     """Plot eq. width distribution"""
     for ahalo in ahalos:
-        ahalo.plot_eq_width(elem=elem ion=ion, line=line)
+        ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
     CGM_w = np.loadtxt("CGMofDLAs_avgW"+ionname+".dat")
-    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], fmt='o',ecolor="black")
+    if np.size(CGM_w[:,0]) == 4:
+        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
+    if np.size(CGM_w[:,0]) == 5:
+        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,50,100,200],[7,50,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
     save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
     plt.clf()
 
@@ -134,14 +126,42 @@ def plot_r_offsets(ahalo):
 name = myname.get_name(5, box=10)
 
 ahalos = []
+
+
 ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL"))
 ahalos[0].color = "grey"
-ahalos.append(CIPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL CALL"))
-ahalos[1].color="pink"
 
-plot_r_offsets(ahalos[0])
+def C_ionic_coverfrac(name, ahalo):
+    """Plot covering fraction"""
+    ahalo.plot_covering_fraction(elem="C", ion=4, line=1548,color="grey",label="C-IV")
+    ahalo.plot_covering_fraction(elem="C", ion=-1, line=1548, color="pink", label="C-ALL")
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(W_{1548} > 0.2 \AA)$")
+    CGM_c = np.loadtxt("CGMofDLAs_CfCIV.dat")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]],ecolor="black")
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_CIV_coverfrac"))
+    plt.clf()
 
-do_civ_plots("ion",ahalos)
+def C_ionic_eq_width(name, ahalo):
+    """Plot eq. width distribution"""
+    ahalo.plot_eq_width(elem="C", ion=4, line=1548,color="grey",label="C-IV")
+    ahalo.plot_eq_width(elem="C", ion=-1, line=1548, color="pink", label="C-ALL")
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"EW(CIV 1548)")
+    CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
+    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
+    save_figure(path.join(outdir,name+"_CIV_eq_width"))
+    plt.clf()
+
+
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL CALL")
+
+plot_r_offsets(ahalo)
+
+C_ionic_coverfrac("ion",ahalo)
+C_ionic_eq_width("ion",ahalo)
 
 #Column density plots
 def rel_c_colden(ahalo):
@@ -162,8 +182,8 @@ def rel_h_colden(ahalo):
     save_figure(path.join(outdir,"ion_CHI_colden_ratio"))
     plt.clf()
 
-rel_c_colden(ahalos[0])
-rel_h_colden(ahalos[0])
+rel_c_colden(ahalo)
+rel_h_colden(ahalo)
 
 ahalos = []
 ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5"))
