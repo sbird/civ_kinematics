@@ -47,16 +47,23 @@ class CIVPlot(ps.PlottingSpectra):
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
-        ratio = eq_width[midpoint:]/eq_width[0:midpoint]
+        ratio = eq_width[midpoint:]/(eq_width[0:midpoint]+1e-5)
         return self._plot_radial(ratio, color, ls, ls2, radial_bins)
 
-    def plot_colden_ratio(self, color=None, ls="-",ls2="--", elem="C", ion=4,elem2=None, ion2=-1,radial_bins = def_radial_bins, label=None):
+    def plot_colden_ratio(self, color=None, ls="-",ls2="--", elem="C", ion=4, elem2=None, ion2=-1,radial_bins = def_radial_bins, label=None):
         """Column density plot; fraction of total in each ion"""
         if elem2 is None:
             elem2 = elem
-        totC = np.sum(self.get_col_density(elem2,ion2),axis=1)
-        CIV = np.sum(self.get_col_density(elem,ion),axis=1)
-        return self._plot_radial(CIV/totC, color, ls, ls2, radial_bins, label=label)
+        midpoint = self.NumLos/2
+        totC = np.sum(self.get_col_density(elem2,ion2),axis=1)[midpoint:]
+        CIV = np.sum(self.get_col_density(elem,ion),axis=1)[midpoint:]
+        return self._plot_radial(CIV/(totC+1), color, ls, ls2, radial_bins, label=label,mean=True)
+
+    def plot_colden(self, color=None, ls="-",ls2="--", elem="C", ion=4, radial_bins = def_radial_bins, label=None):
+        """Column density plot"""
+        midpoint = self.NumLos/2
+        CIV = np.sum(self.get_col_density(elem,ion),axis=1)[midpoint:]
+        return self._plot_radial(CIV, color, ls, ls2, radial_bins, label=label,mean=False)
 
     def plot_covering_fraction(self, eq_thresh = 0.2, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins, label=None):
         """
