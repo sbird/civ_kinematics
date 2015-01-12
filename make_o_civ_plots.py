@@ -79,7 +79,7 @@ if __name__ == "__main__":
     plt.ylabel(r"$dN/dX \,(W_{r,1548} \geq W_{r, 0.6}$)")
     plt.xlabel("z")
     plt.xlim(1, 7)
-    plt.ylim(0.01, 1)
+    plt.ylim(1e-3, 0.3)
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_line_dens"))
     plt.clf()

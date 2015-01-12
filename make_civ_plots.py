@@ -14,6 +14,7 @@ import myname
 import numpy as np
 from save_figure import save_figure
 
+np.seterr(divide='raise',invalid='raise')
 labels = {1:"HVEL", 3:"NOSN", 7:"DEF", 9:"FAST", 4:"WARM"}
 colors = {1:"purple", 3:"green", 7:"blue", 9:"red", 4:"gold"}
 
@@ -166,24 +167,31 @@ C_ionic_eq_width("ion",ahalo)
 #Column density plots
 def rel_c_colden(ahalo):
     """Column density for different carbon ions"""
-    ahalo.plot_colden_ratio(color="grey",elem="C",ion=4,label="CIV")
-    ahalo.plot_colden_ratio(color="pink",elem="C",ion=2, label="CII")
-    ahalo.plot_colden_ratio(color="green",elem="C",ion=3, label="CIII")
-    ahalo.plot_colden_ratio(color="brown",elem="C",ion=5, label="CV")
-    plt.legend(loc='upper center', ncol=4)
+    (center, mean_plot_arr2) = ahalo.plot_colden_ratio(color="grey",elem="C",ion=4,ion2=-1, label="CIV")
+    (center, mean_plot_arr3) = ahalo.plot_colden_ratio(color="pink",elem="C",ion=2, ion2=-1, label="CII")
+    (center, mean_plot_arr4) = ahalo.plot_colden_ratio(color="green",elem="C",ion=3, ion2=-1, label="CIII")
+    (center, mean_plot_arr5) = ahalo.plot_colden_ratio(color="blue",elem="C",ion=5, ion2=-1, label="CV")
+    #(center, mean_plot_arr6) = ahalo.plot_colden_ratio(color="yellow",elem="C",ion=6, ion2=-1, label="CVI")
+    #(center, mean_plot_arr7) = ahalo.plot_colden_ratio(color="red",elem="C",ion=7, ion2=-1, label="CVII")
+    #plt.plot(center, mean_plot_arr2+mean_plot_arr3+mean_plot_arr4+mean_plot_arr5+mean_plot_arr6+mean_plot_arr7, color="black")
+    plt.legend(loc='upper center', ncol=2)
     save_figure(path.join(outdir,"ion_C_colden_ratio"))
     plt.clf()
 
-def rel_h_colden(ahalo):
-    ahalo.plot_colden_ratio(color="grey",elem="C",ion=2,elem2="H",ion2=1, label="CII/HI")
-    ahalo.plot_colden_ratio(color="pink",elem="C",ion=4,elem2="H",ion2=1, label="CIV/HI")
-    plt.legend(loc='lower center', ncol=4)
+def hc_colden(ahalo):
+    ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII")
+    ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII")
+    ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV")
+    ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV")
+    #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
+    ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon")
+    plt.legend(loc='upper center', ncol=2)
     plt.yscale('log')
-    save_figure(path.join(outdir,"ion_CHI_colden_ratio"))
+    save_figure(path.join(outdir,"ion_C_colden"))
     plt.clf()
 
-rel_c_colden(ahalo)
-rel_h_colden(ahalo)
+#rel_c_colden(ahalo)
+hc_colden(ahalo)
 
 ahalos = []
 ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5"))

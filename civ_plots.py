@@ -21,7 +21,7 @@ class CIVPlot(ps.PlottingSpectra):
         offsets *= self.atime/self.hubble
         return offsets
 
-    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, label=None):
+    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, label=None,mean=True):
         """Helper function plotting a derived something as a function of radius"""
         center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
         mean_plot_arr = np.zeros(np.size(radial_bins)-1)
@@ -30,7 +30,10 @@ class CIVPlot(ps.PlottingSpectra):
             arr_bin = plot_arr[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
             if np.size(arr_bin) == 0:
                 continue
-            mean_plot_arr[ii] = np.mean(arr_bin)
+            if mean:
+                mean_plot_arr[ii] = np.mean(arr_bin)
+            else:
+                mean_plot_arr[ii] = np.median(arr_bin)
         if label == None:
             label=self.label
         plt.plot(center, mean_plot_arr, color=color, ls=ls, label=label)
