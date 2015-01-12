@@ -60,7 +60,7 @@ def CIV_eq_ratio(name, ahalos):
         ahalo.plot_eq_width_ratio()
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$\eta_\mathrm{pair} / \eta_\mathrm{DLA}$")
-    plt.ylim(0, 1)
+    plt.ylim(0, 3)
     plt.legend()
     save_figure(path.join(outdir,name+"_CIV_eq_ratio"))
     plt.clf()
@@ -129,9 +129,6 @@ name = myname.get_name(5, box=10)
 ahalos = []
 
 
-ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL"))
-ahalos[0].color = "grey"
-
 def C_ionic_coverfrac(name, ahalo):
     """Plot covering fraction"""
     ahalo.plot_covering_fraction(elem="C", ion=4, line=1548,color="grey",label="C-IV")
@@ -157,7 +154,8 @@ def C_ionic_eq_width(name, ahalo):
     plt.clf()
 
 
-ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL CALL")
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL")
+ahalo.color = "grey"
 
 plot_r_offsets(ahalo)
 
@@ -193,9 +191,8 @@ def hc_colden(ahalo):
 #rel_c_colden(ahalo)
 hc_colden(ahalo)
 
-ahalos = []
-ahalos.append(ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5"))
-ahalos[0].color = "grey"
+ahalos = [ahalo,]
+
 for ss in (1,3,4,7,9):
     name = myname.get_name(ss, box=25)
     ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss])
