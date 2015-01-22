@@ -6,6 +6,7 @@ import numpy as np
 import os.path as path
 import myname
 import spectra as ss
+import plot_spectra as ps
 from save_figure import save_figure
 
 outdir = path.join(myname.base, "civ_plots/")
@@ -15,6 +16,52 @@ print "Plots at ",outdir
 colors = {0:"pink", 1:"purple", 2:"cyan", 3:"green", 4:"gold", 5:"red", 7:"blue", 6:"grey", 8:"pink", 9:"orange", 'A':"grey", 'S':"red"}
 lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:"-", 8:"-",9:"-",'A':"--"}
 labels = {0:"ILLUS",1:"HVEL", 2:"HVNOAGN",3:"NOSN", 4:"WMNOAGN", 5:"MVEL",6:"METAL",7:"DEF", 8:"RICH",9:"FAST", 'A':"MOM", 'S':"SMALL"}
+
+#D'Odorico 2010 0910.2126 data
+def plot_dor_omega_civ1():
+    """Omega_CIV from D'Odorico 0910.2126. This is their Table 4 for N_CIV = 12 - 15"""
+    omega_civ = [10.0, 5.0, 3.2, 2.4, 3.7]
+    redshift = [1.75,2.25,2.75,3.25,3.75]
+    #Bootstrap error
+    omega_civ_err = [2.7, 1.4, 0.8, 0.6, 1.0]
+    plt.errorbar(redshift, omega_civ, marker='o',fmt='none', yerr = omega_civ_err, xerr=0.25, ecolor="black")
+
+def plot_dor_omega_civ2():
+    """Omega_CIV from D'Odorico 0910.2126. This is their Table 4 for N_CIV = 13.8 - 15 (which is more directly comparable to Cooksey)"""
+    omega_civ = [6.5, 4.4, 2.8,1.3]
+    redshift = [1.8, 2.3, 2.75, 3.5]
+    rederr = [0.3, 0.2, 0.25, 0.5]
+    #Bootstrap error
+    omega_civ_err = [1.9, 1.7, 0.9, 0.4]
+    plt.errorbar(redshift, omega_civ, marker='o',fmt='none', yerr = omega_civ_err, xerr=rederr, ecolor="black")
+
+def plot_dor_cddf():
+    """CIV CDDF from D'Odorico 0910.2126. This is their Table 4 for N_CIV = 13.8 - 15 (which is more directly comparable to Cooksey)"""
+    civ_cddf = np.array([[51,  12.18, -12.0708, 0.0608],
+        [90,  12.48, -12.1242, 0.0458],
+        [89,  12.78, -12.4290, 0.0460],
+        [81,  13.08, -12.7699, 0.0483],
+        [68,  13.38, -13.1459, 0.0527],
+        [49,  13.68, -13.5882, 0.0620],
+        [30,  13.98, -14.1013, 0.0793],
+        [18,  14.28, -14.6231, 0.1024],
+        [10,  14.58, -15.1784, 0.1373],
+        [6,  14.88, -15.7002, 0.1773 ],
+    [1,  15.18, -16.7784, 0.4343]])
+    lxer=-10**(civ_cddf[:,1]-0.15)+10**(civ_cddf[:,1])
+    uxer=10**(civ_cddf[:,1]+0.15)-10**(civ_cddf[:,1])
+    lyer=-10**(civ_cddf[:,2]-civ_cddf[:,3])+10**(civ_cddf[:,2])
+    uyer=10**(civ_cddf[:,2]+civ_cddf[:,3])-10**(civ_cddf[:,2])
+    plt.errorbar(10**civ_cddf[:,1], 10**civ_cddf[:,2], marker='o',fmt='none', yerr = [lyer, uyer], xerr=[lxer, uxer], ecolor="black")
+
+def plot_simcoe_data():
+    """Plot the high redshift data from Simcoe 2011. 1104.4117 Integration limits are 13.4 - 15"""
+    omega_civ = [1.87, 0.46]
+    redshift = [4.95, 5.66]
+    rederr = [[0.6,0.35], [0.36,0.74]]
+    #Bootstrap error
+    omega_civ_err = [0.5, 0.2]
+    plt.errorbar(redshift, omega_civ, marker='o',fmt='none', yerr = omega_civ_err, xerr=rederr, ecolor="black")
 
 #Cooksey 2013 1204.2827 data
 def plot_c12_omega_civ():
@@ -37,26 +84,38 @@ def plot_c12_line_den():
     l_density_err = [0.011,  0.012,  0.013,  0.012,  0.013,  0.012,  0.012,  0.011,  0.009,  0.006]
     plt.errorbar(redshift, line_density, marker='o',fmt='none', yerr = l_density_err, xerr=rederr, ecolor="black")
 
+def plot_c12_eqw_data():
+    """Plot the equivalent width histogram data from Cooksey 2012"""
+    allf = np.loadtxt("fig_logfxw_rec.tab")
+    #Each redshift has 15 entries. We want bin 6, at z=2.
+    eqw = allf[5*15+1:6*15+2,:]
+    mmebin = (eqw[:,0]+eqw[:,1])/2
+    xer = mmebin-eqw[:,0]
+    plt.errorbar(mmebin, eqw[:,2], marker='o',fmt='none', yerr = [eqw[:,3], eqw[:,4]], xerr=xer, ecolor="black")
+
 snaps = {1:4, 2:3.5, 3:3, 4:2.5, 5:2, 6:1.5, 7:1, 8:0.5, 9:0.3, 10:0, 901:6, 902:5, 903:4.5}
 def plot_line_density(sim, box, end=6, early=False):
     """Plot the line density to compare with Cooksey 2012.
-    Threshold is 0.6 A."""
+       Threshold is 0.6 A."""
     base = myname.get_name(sim, box=box)
+    #Line density
     lciv = []
+    #Omega_CIV > 14
     om_civ = []
+    #Omega_CIV 12-15
+    om_civ_low = []
+    #Redshift
     reds = []
+    sss = range(1,end)
     if early:
-        for snap in xrange(901,904):
-            ahalo = ss.Spectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.)
-            reds.append(snaps[snap])
-            lciv.append(ahalo.line_density_eq_w(0.6,"C",4,1548))
-            om_civ.append(10**8*ahalo.omega_abs(10**14,10**22,"C",4))
-    for snap in xrange(1,end):
+        sss = range(901,904)+sss
+    for snap in sss:
         try:
             ahalo = ss.Spectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.)
             reds.append(snaps[snap])
             lciv.append(ahalo.line_density_eq_w(0.6,"C",4,1548))
             om_civ.append(10**8*ahalo.omega_abs(10**14,10**22,"C",4))
+            om_civ_low.append(10**8*ahalo.omega_abs(10**12,10**15,"C",4))
         except IOError:
             #This snapshot doesn't exist
             continue
@@ -64,13 +123,67 @@ def plot_line_density(sim, box, end=6, early=False):
     plt.semilogy(reds, lciv, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     plt.figure(2)
     plt.semilogy(reds, om_civ, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
+    plt.figure(3)
+    plt.semilogy(reds, om_civ_low, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
+
+class CIVPlottingSpectra(ps.PlottingSpectra):
+    def eq_width_dist(self,elem = "C", ion = 4, line=1548, dW=0.05, minW=0.05, maxW=3.):
+        """
+        This computes the equivalent width frequency distribution, defined in analogy to the column density function.
+        This is the number of detections per rest eq. width bin dW per co-moving path length dX.
+        So we have f(N) = d n/ dW dX
+        and n(N) = number of absorbers per sightline in this column density bin.
+        Note f(N) has dimensions of 1/A, because N has units of cm^-2 and X is dimensionless.
+
+        Returns:
+            (W, f_W_table) - eq. width (linear binning) and corresponding f(W)
+        """
+        W_table = np.arange(minW, maxW, dW)
+        center = np.array([(W_table[i]+W_table[i+1])/2. for i in range(0,np.size(W_table)-1)])
+        dX=self.absorption_distance()
+        #equivalent width for each sightline
+        eqw = self.equivalent_width(elem, ion, line)
+        tot_lines = np.size(eqw)
+        (tot_f_W, W_table) = np.histogram(eqw,W_table)
+        tot_f_W=tot_f_W/(dW*dX*tot_lines)
+        return (center, tot_f_W)
+
+    def plot_eq_width_dist(self,elem = "C", ion = 4, line=1548, dW=0.05, minW=0.05, maxW=3., color="blue"):
+        """Plots the equivalent width frequency function."""
+        (W,f_W)=self.eq_width_dist(elem, ion, line, dW,minW*0.9,maxW*1.1)
+        plt.semilogy(W,f_W,color=color, label=self.label)
+        ax=plt.gca()
+        ax.set_xlabel(r"$W_{r,1548} (\AA)$")
+        ax.set_ylabel(r"$f(W_{r,1548}) (\AA^{-1})$")
+        plt.xlim(minW, maxW)
+
+def plot_cddf(sim, box, snap=5):
+    """Plot the CIV column density function"""
+    base = myname.get_name(sim, box=box)
+    plt.figure(1)
+    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.,label=labels[sim])
+    ahalo.plot_cddf("C", 4, minN=12, maxN=17., color=colors[sim])
+    plt.figure(2)
+    ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim])
 
 if __name__ == "__main__":
+    for s in (0,1,2,3,9):
+        plot_cddf(s, 25)
+    plt.figure(1)
+    plot_dor_cddf()
+    plt.legend(loc="upper right")
+    save_figure(path.join(outdir,"civ_cddf"))
+    plt.clf()
+    plt.figure(2)
+    plot_c12_eqw_data()
+    plt.legend(loc="upper right")
+    plt.yscale('log')
+    save_figure(path.join(outdir,"civ_eqw"))
+    plt.clf()
     for s in (0,1,2,3,9):
         plot_line_density(s, 25)
     plot_line_density(4, 25,10)
     plot_line_density(7, 25, early=True)
-
     #Small boxes seem too small. Alarming.
     #plot_line_density(5, 10)
     #plot_line_density(7, 7.5)
@@ -79,17 +192,25 @@ if __name__ == "__main__":
     plt.ylabel(r"$dN/dX \,(W_{r,1548} \geq W_{r, 0.6}$)")
     plt.xlabel("z")
     plt.xlim(1, 7)
-    plt.ylim(1e-3, 0.3)
+    plt.ylim(1e-3, 1)
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_line_dens"))
     plt.clf()
     plt.figure(2)
     plot_c12_omega_civ()
+    plot_dor_omega_civ2()
+    plot_simcoe_data()
     plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
     plt.xlabel("z")
-    plt.xlim(1, 7)
-
+    plt.xlim(1, 9)
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_omega"))
     plt.clf()
-
+    plt.figure(3)
+    plot_dor_omega_civ1()
+    plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
+    plt.xlabel("z")
+    plt.xlim(1, 7)
+    plt.legend(loc="upper right")
+    save_figure(path.join(outdir,"civ_omega_low"))
+    plt.clf()
