@@ -8,7 +8,7 @@ import myname
 
 class DLANrSpectra(spectra.Spectra):
     """Generate metal line spectra from simulation snapshot"""
-    def __init__(self,num, base, numlos, redshift, res = 1., cdir = None, savefile="nr_dla_spectra.hdf5", savedir=None):
+    def __init__(self,num, base, numlos, redshift, res = 1., cdir = None, savefile="nr_dla_spectra.hdf5", savedir=None, reload_file=True):
         #Get a sample of DLAs from the savefile
         dlas = spectra.Spectra(num, base, None, None, res, cdir, savefile="grid_spectra_DLA.hdf5",savedir=savedir)
         dla_cofm = dlas.cofm
@@ -28,7 +28,7 @@ class DLANrSpectra(spectra.Spectra):
         for i in np.arange(0,numlos):
             ax = axx - set([axis[numlos+i]])
             cofm[numlos+i, list(ax)] += rands[i]
-        spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=True)
+        spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
 
     def get_cofm(self, num = None):
         """Find a bunch more sightlines: do nothing in this case"""
@@ -77,16 +77,13 @@ def do_stuff(snap, path):
     """Make lines"""
     halo = DLANrSpectra(snap,path,1000, 2)
     halo.get_tau("C",4,1548, force_recompute=False)
-    halo.get_tau("H",1,1216, force_recompute=False)
+    halo.get_tau("H",1,1215, force_recompute=False)
     halo.get_tau("C",-1,1548, force_recompute=False)
     halo.get_tau("C",2,1334, force_recompute=False)
     halo.get_tau("Si",2,1526, force_recompute=False)
     halo.get_tau("Si",4,1393, force_recompute=False)
-    halo.get_density("C",4)
-    halo.get_density("C",3)
-    halo.get_density("C",2)
-    halo.get_density("C",1)
-    halo.get_density("C",5)
+    for ion in xrange(1,8):
+        halo.get_density("C",ion)
     halo.get_density("C",-1)
     halo.get_velocity("C",4)
     halo.get_density("H",1)

@@ -2,11 +2,11 @@
 import randspectra as rs
 import myname
 
-def get_civ(sim, box, start=1):
+def get_civ(sim, box, start=1, end=10):
     """Generate the spectra through random directions"""
     base = myname.get_name(sim,box=box)
     #Resolution: Cooksey is SDSS which is ~100 km/s, but D'Odorico is HIRES.
-    for n in xrange(start,10):
+    for n in xrange(start,end):
         try:
             ahalo = rs.RandSpectra(n, base, numlos=5000, thresh=0., res=2., savefile="rand_civ_spectra.hdf5")
             ahalo.get_tau("C",4,1548, force_recompute=True)
@@ -19,8 +19,9 @@ def get_civ(sim, box, start=1):
         except IOError:
             continue
 
-get_civ(2,25)
-raise Exception
+#get_civ(7, 25,1,4)
+#This needs to have +"2" added to base above
+
 for ss in (0,1,2,3,4,5,7,9):
     get_civ(ss, 25)
 

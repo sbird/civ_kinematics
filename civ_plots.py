@@ -51,7 +51,7 @@ class CIVPlot(ps.PlottingSpectra):
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ratio = eq_width[midpoint:]/(eq_width[0:midpoint]+1e-5)
-        return self._plot_radial(ratio, color, ls, ls2, radial_bins)
+        return self._plot_radial(ratio, color, ls, ls2, radial_bins,mean=False)
 
     def plot_colden_ratio(self, color=None, ls="-",ls2="--", elem="C", ion=4, elem2=None, ion2=-1,radial_bins = def_radial_bins, label=None):
         """Column density plot; fraction of total in each ion"""
