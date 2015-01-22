@@ -167,6 +167,12 @@ def plot_cddf(sim, box, snap=5):
     ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim])
 
 if __name__ == "__main__":
+    ahalo = CIVPlottingSpectra(5, myname.get_name(0, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.,label=labels[0])
+    ahalo.plot_eq_width_vs_col_den("C",4,1548)
+    plt.ylim(1e11,1e17)
+    plt.xlim(-3,0.5)
+    save_figure(path.join(outdir,"civ_eqwvscolden"))
+    plt.clf()
     for s in (0,1,2,3,9):
         plot_cddf(s, 25)
     plt.figure(1)
