@@ -51,7 +51,7 @@ def do_civ_plots(name, ahalos):
     generic_eq_width("CII", "C", 2, 1334, name, ahalos)
     generic_eq_width("CIV", "C", 4, 1548, name, ahalos)
     generic_eq_width("SiII", "Si", 2, 1526, name, ahalos)
-    #generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
+    generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
     #generic_eq_width("HI", "H", 1, 1216, name, ahalos)
 
 def CIV_eq_ratio(name, ahalos):
@@ -60,7 +60,7 @@ def CIV_eq_ratio(name, ahalos):
         ahalo.plot_eq_width_ratio()
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$\eta_\mathrm{pair} / \eta_\mathrm{DLA}$")
-    plt.ylim(0, 3)
+    plt.ylim(0, 1.5)
     plt.legend()
     save_figure(path.join(outdir,name+"_CIV_eq_ratio"))
     plt.clf()
