@@ -68,7 +68,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         dX=self.absorption_distance()
         #equivalent width for each sightline
         eqw = self.equivalent_width(elem, ion, line)
-        tot_lines = np.size(eqw)
+        tot_lines = np.size(eqw)+self.discarded
         (tot_f_W, W_table) = np.histogram(eqw,W_table)
         tot_f_W=tot_f_W/(dW*dX*tot_lines)
         return (center, tot_f_W)
