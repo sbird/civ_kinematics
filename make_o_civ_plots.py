@@ -36,11 +36,11 @@ def plot_line_density(sim, box, end=6, early=False):
         sss = range(901,904)+sss
     for snap in sss:
         try:
-            ahalo = ss.Spectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.)
+            ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.)
             reds.append(snaps[snap])
             lciv.append(ahalo.line_density_eq_w(0.6,"C",4,1548))
-            om_civ.append(10**8*ahalo.omega_abs(10**14,10**22,"C",4))
-            om_civ_low.append(10**8*ahalo.omega_abs(10**12,10**15,"C",4))
+            om_civ.append(10**8*ahalo.omega_abs(1e14,1e22,"C",4))
+            om_civ_low.append(10**8*ahalo.omega_abs(1e12,1e15,"C",4))
         except IOError:
             #This snapshot doesn't exist
             continue
@@ -86,20 +86,21 @@ def plot_cddf(sim, box, snap=5):
     """Plot the CIV column density function"""
     base = myname.get_name(sim, box=box)
     plt.figure(1)
-    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.,label=labels[sim])
+    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[sim])
     ahalo.plot_cddf("C", 4, minN=12, maxN=17., color=colors[sim])
     plt.figure(2)
     ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim])
 
 if __name__ == "__main__":
-    ahalo = CIVPlottingSpectra(5, myname.get_name(0, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=2.,label=labels[0])
+    sims = (0,1,2,3,4,7,9)
+    ahalo = CIVPlottingSpectra(5, myname.get_name(0, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[0])
     ahalo.plot_eq_width_vs_col_den("C",4,1548)
     plt.ylim(1e11,1e17)
     plt.xlim(-3,0.5)
     save_figure(path.join(outdir,"civ_eqwvscolden"))
     plt.clf()
-    for s in (0,1,2,3,9):
-        plot_cddf(s, 25)
+    for s in sims:
+        plot_cddf(s, 5, 25)
     plt.figure(1)
     plot_dor_cddf()
     plt.legend(loc="upper right")
@@ -111,10 +112,23 @@ if __name__ == "__main__":
     plt.yscale('log')
     save_figure(path.join(outdir,"civ_eqw"))
     plt.clf()
-    for s in (0,1,2,3,9):
+    for s in sims:
+        plot_cddf(s, 1, 25)
+    plt.figure(1)
+    plot_dor_cddf()
+    plt.legend(loc="upper right")
+    save_figure(path.join(outdir,"civ_cddf_z4"))
+    plt.clf()
+    plt.figure(2)
+    plot_c12_eqw_data()
+    plt.legend(loc="upper right")
+    plt.yscale('log')
+    save_figure(path.join(outdir,"civ_eqw_z4"))
+    plt.clf()
+    for s in sims:
         plot_line_density(s, 25)
-    plot_line_density(4, 25,10)
-    plot_line_density(7, 25, early=True)
+    #plot_line_density(4, 25,10)
+    #plot_line_density(7, 25, early=True)
     #Small boxes seem too small. Alarming.
     #plot_line_density(5, 10)
     #plot_line_density(7, 7.5)
