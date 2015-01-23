@@ -8,6 +8,7 @@ import myname
 import spectra as ss
 import plot_spectra as ps
 from civ_data import *
+import line_data
 from save_figure import save_figure
 
 outdir = path.join(myname.base, "civ_plots/")
@@ -103,10 +104,23 @@ def plot_cddf(sim, snap, box):
     plt.figure(2)
     ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim])
 
+def linear_cog_col(eqw, rwave, fosc):
+    """Plot the column density expected from the equivalent width, assuming we are in the linear regime of the curve of growth.
+    ie: 1-e^(-tau) ~ tau
+    This means that W ~ N and so we have (numerical values from Pettini Physical Cosmology notes):
+
+    N   = 1.13x10^20  W / (lamdba^2 * fosc)
+    """
+    return 1.13e20 * eqw / (rwave**2 * fosc)
+
 if __name__ == "__main__":
-    sims = (0,1,2,3,4,7,9)
-    ahalo = CIVPlottingSpectra(5, myname.get_name(0, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[0])
+    sims = (1,2,3,4,7,9)
+    ahalo = CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[0])
     ahalo.plot_eq_width_vs_col_den("C",4,1548)
+    lines = line_data.LineData()
+    fosc = lines[("C", 4)][1548].fosc_X
+    eqw = np.linspace(-3, 0.5,50)
+    plt.semilogy(eqw, linear_cog_col(10**eqw, 1548, fosc), '-',color="black")
     plt.ylim(1e11,1e17)
     plt.xlim(-3,0.5)
     save_figure(path.join(outdir,"civ_eqwvscolden"))
@@ -125,17 +139,20 @@ if __name__ == "__main__":
     save_figure(path.join(outdir,"civ_eqw"))
     plt.clf()
     for s in sims:
-        plot_cddf(s, 1, 25)
+        try:
+            plot_cddf(s, 2, 25)
+        except IOError:
+            pass
     plt.figure(1)
     plot_dor_cddf()
     plt.legend(loc="upper right")
-    save_figure(path.join(outdir,"civ_cddf_z4"))
+    save_figure(path.join(outdir,"civ_cddf_z3.5"))
     plt.clf()
     plt.figure(2)
-    plot_c12_eqw_data()
+    plot_c12_eqw_data_z35()
     plt.legend(loc="upper right")
     plt.yscale('log')
-    save_figure(path.join(outdir,"civ_eqw_z4"))
+    save_figure(path.join(outdir,"civ_eqw_z3.5"))
     plt.clf()
     for s in sims:
         plot_line_density(s, 25)
