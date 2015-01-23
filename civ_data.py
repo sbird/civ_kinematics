@@ -79,3 +79,13 @@ def plot_c12_eqw_data():
     xer = mmebin-eqw[:,0]
     plt.errorbar(mmebin, eqw[:,2], marker='o',fmt='none', yerr = [eqw[:,3], eqw[:,4]], xerr=xer, ecolor="black")
 
+def plot_c12_eqw_data_z35():
+    """Plot the equivalent width histogram data from Cooksey 2012 at z=3.5"""
+    allf = np.loadtxt("fig_logfxw_rec.tab")
+    #Each redshift has 15 entries. We want the last (10th) bin, at z=3.5
+    eqw = allf[9*15+2:10*15+2,:]
+    mmebin = (eqw[:,0]+eqw[:,1])/2
+    xer = mmebin-eqw[:,0]
+    plt.errorbar(mmebin, eqw[:,2], marker='o',fmt='none', yerr = [eqw[:,3], eqw[:,4]], xerr=xer, ecolor="black")
+
+
