@@ -82,7 +82,19 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         ax.set_ylabel(r"$f(W_{r,1548}) (\AA^{-1})$")
         plt.xlim(minW, maxW)
 
-def plot_cddf(sim, box, snap=5):
+    def line_density_dist(self, thresh=0.6, elem = "C", ion = 4, line=1548):
+        """
+        Compute dN/dX, by integrating dn/dWdX over W.
+        """
+        (bins, cddf) = self.eq_width_dist(elem, ion, line, minW = 0.6)
+        #Integrate cddf * N
+        #H0 in 1/s units
+        h100=3.2407789e-18*self.hubble
+        line_density = np.trapz(cddf, bins)
+        return line_density
+
+
+def plot_cddf(sim, snap, box):
     """Plot the CIV column density function"""
     base = myname.get_name(sim, box=box)
     plt.figure(1)
