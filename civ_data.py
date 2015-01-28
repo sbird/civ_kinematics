@@ -21,7 +21,7 @@ def plot_dor_omega_civ2():
     omega_civ_err = [1.9, 1.7, 0.9, 0.4]
     plt.errorbar(redshift, omega_civ, marker='o',fmt='none', yerr = omega_civ_err, xerr=rederr, ecolor="black")
 
-def plot_dor_cddf():
+def plot_dor_cddf(scale=1, moment=False):
     """CIV CDDF from D'Odorico 0910.2126. This is their Table 4 for N_CIV = 13.8 - 15 (which is more directly comparable to Cooksey)"""
     civ_cddf = np.array([[51,  12.18, -12.0708, 0.0608],
         [90,  12.48, -12.1242, 0.0458],
@@ -30,15 +30,24 @@ def plot_dor_cddf():
         [68,  13.38, -13.1459, 0.0527],
         [49,  13.68, -13.5882, 0.0620],
         [30,  13.98, -14.1013, 0.0793],
-        [18,  14.28, -14.6231, 0.1024],
-        [10,  14.58, -15.1784, 0.1373],
-        [6,  14.88, -15.7002, 0.1773 ],
-    [1,  15.18, -16.7784, 0.4343]])
+        #[18,  14.28, -14.6231, 0.1024],
+        #[10,  14.58, -15.1784, 0.1373],
+        #[6,  14.88, -15.7002, 0.1773 ],
+    #[1,  15.18, -16.7784, 0.4343]
+    ])
     lxer=-10**(civ_cddf[:,1]-0.15)+10**(civ_cddf[:,1])
     uxer=10**(civ_cddf[:,1]+0.15)-10**(civ_cddf[:,1])
     lyer=-10**(civ_cddf[:,2]-civ_cddf[:,3])+10**(civ_cddf[:,2])
     uyer=10**(civ_cddf[:,2]+civ_cddf[:,3])-10**(civ_cddf[:,2])
-    plt.errorbar(10**civ_cddf[:,1], 10**civ_cddf[:,2], marker='o',fmt='none', yerr = [lyer, uyer], xerr=[lxer, uxer], ecolor="black")
+    #om_civ = np.trapz(10**civ_cddf[:,1]*10**civ_cddf[:,2],x=10**civ_cddf[:,1])
+    #fact = (100/3.08567758e19)*1.67e-24*12/(1.88e-29*2.99e10)/0.72
+    #print om_civ*fact
+    if moment:
+        scale = 10**civ_cddf[:,1]
+    civ_cddf[:,2]+=np.log10(scale)
+    lyer*=scale
+    uyer*=scale
+    plt.errorbar(10**civ_cddf[:,1], 10**civ_cddf[:,2], marker='o',fmt='none', yerr = [lyer, uyer], xerr=[lxer, uxer], ecolor="grey")
 
 def plot_simcoe_data():
     """Plot the high redshift data from Simcoe 2011. 1104.4117 Integration limits are 13.4 - 15"""
@@ -70,13 +79,16 @@ def plot_c12_line_den():
     l_density_err = [0.011,  0.012,  0.013,  0.012,  0.013,  0.012,  0.012,  0.011,  0.009,  0.006]
     plt.errorbar(redshift, line_density, marker='o',fmt='none', yerr = l_density_err, xerr=rederr, ecolor="black")
 
-def plot_c12_eqw_data():
+def plot_c12_eqw_data(moment=False):
     """Plot the equivalent width histogram data from Cooksey 2012"""
     allf = np.loadtxt("fig_logfxw_rec.tab")
     #Each redshift has 15 entries. We want bin 6, at z=2.
     eqw = allf[5*15+1:6*15+2,:]
     mmebin = (eqw[:,0]+eqw[:,1])/2
     xer = mmebin-eqw[:,0]
+    if moment:
+        for i in (2,3,4):
+            eqw[:,i]*=mmebin
     plt.errorbar(mmebin, eqw[:,2], marker='o',fmt='none', yerr = [eqw[:,3], eqw[:,4]], xerr=xer, ecolor="black")
 
 def plot_c12_eqw_data_z35():
