@@ -84,6 +84,9 @@ if __name__ == "__main__":
     ahalo.plot_eqw_mass("C",4,1548,color=colors[7])
     save_figure(path.join(outdir,"civ_eqwvsmass"))
     plt.clf()
+    ahalo.plot_eqw_dist("C",4,1548,color=colors[7])
+    save_figure(path.join(outdir,"civ_eqwvsdist"))
+    plt.clf()
     for s in sims:
         plot_cddf(s, 5, 25)
     #plt.figure(1)

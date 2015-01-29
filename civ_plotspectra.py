@@ -75,9 +75,10 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             proj_pos = np.array(self.cofm[ii,:])
             ax = self.axis[ii]-1
             proj_pos[ax] = zpos[ii]
-            #Is this within the virial radius of any halo?
+            #Closest halo in units of halo virial radius
             dd = ne.evaluate("sum((halo_cofm - proj_pos)**2,axis=1)")
             indd = np.where(self.sub_mass > 0)
+            dd[indd]/=halo_radii[indd]**2
             #Minimal distance
             ind = np.where(dd[indd] == np.min(dd[indd]))
             halos[ii] = indd[0][ind][0]
@@ -117,6 +118,29 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.loglog(center, uquart,ls=":",color=color)
         plt.loglog(center, lquart, ls=":",color=color)
         plt.ylim(1e9,1e13)
+
+    def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
+        """Plot median distance from halo in terms of virial radius"""
+        (halos,dists) = self.find_nearest_halo(elem,ion, 50)
+        eqw = np.sum(self.get_col_density(elem,ion),axis=1)
+        W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
+        center = np.array([(W_table[i]+W_table[i+1])/2. for i in xrange(0,np.size(W_table)-1)])
+        width =  np.array([W_table[i+1]-W_table[i] for i in xrange(0,np.size(W_table)-1)])
+        medians = np.ones_like(center)
+        uquart= np.ones_like(center)
+        lquart = np.ones_like(center)
+        for ii in xrange(0,np.size(W_table)-1):
+            #Lines in this bin
+            ind = np.where(np.logical_and(eqw < W_table[ii+1],eqw > W_table[ii]))
+            if np.size(ind) > 0:
+                medians[ii] = np.median(dists[ind])
+                uquart[ii] = np.percentile(dists[ind],75)
+                lquart[ii] = np.percentile(dists[ind],25)
+        plt.semilogy(medians,center,color=color)
+        plt.semilogy(uquart,center, ls=":",color=color)
+        plt.semilogy(lquart, center, ls=":",color=color)
+        plt.ylim(minW,maxW)
+
 
     def get_contiguous_regions(self, elem="C", ion = 4, thresh = 50, relthresh = 1e-3):
         """
