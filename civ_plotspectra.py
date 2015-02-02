@@ -117,10 +117,13 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.loglog(center, medians,color=color)
         plt.loglog(center, uquart,ls=":",color=color)
         plt.loglog(center, lquart, ls=":",color=color)
+        plt.ylabel(r"Mass ($M_\odot$ h$^{-1}$)")
+        #plt.xlabel(r"$W_\mathrm{1548} (\AA )$")
+        plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.ylim(1e9,1e13)
 
     def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
-        """Plot median distance from halo in terms of virial radius"""
+        """Plot median distance from halo in terms of virial radius as a function of column density (misnamed function!)"""
         (halos,dists) = self.find_nearest_halo(elem,ion, 50)
         eqw = np.sum(self.get_col_density(elem,ion),axis=1)
         W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
@@ -136,10 +139,12 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
                 medians[ii] = np.median(dists[ind])
                 uquart[ii] = np.percentile(dists[ind],75)
                 lquart[ii] = np.percentile(dists[ind],25)
-        plt.semilogy(medians,center,color=color)
-        plt.semilogy(uquart,center, ls=":",color=color)
-        plt.semilogy(lquart, center, ls=":",color=color)
-        plt.ylim(minW,maxW)
+        plt.semilogx(center,medians, color=color)
+        plt.semilogx(center, uquart,ls=":",color=color)
+        plt.semilogx(center, lquart, ls=":",color=color)
+        plt.ylabel(r"Distance (R$_\mathrm{vir}$)")
+        plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
+        plt.xlim(minW,maxW)
 
 
     def get_contiguous_regions(self, elem="C", ion = 4, thresh = 50, relthresh = 1e-3):

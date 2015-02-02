@@ -123,7 +123,7 @@ if __name__ == "__main__":
     plt.xscale('log')
     #plt.legend(loc="upper right")
     plt.yscale('log')
-    save_figure(path.join(outdir,"civ_eqw_z3.5"))
+    save_figure(path.join(outdir,"civ_eqw_z35"))
     plt.clf()
     for s in sims:
         plot_line_density(s, 25)
