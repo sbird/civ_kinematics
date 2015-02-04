@@ -15,8 +15,8 @@ import numpy as np
 from save_figure import save_figure
 
 np.seterr(divide='raise',invalid='raise')
-labels = {1:"HVEL", 3:"NOSN", 7:"DEF", 9:"FAST", 4:"WARM"}
-colors = {1:"purple", 3:"green", 7:"blue", 9:"red", 4:"gold"}
+labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",6:"LOAD"}
+colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green"}
 
 outdir = path.join(myname.base, "civ_plots/")
 
@@ -124,11 +124,6 @@ def plot_r_offsets(ahalo):
     save_figure(path.join(outdir,"CIV_r_offset"))
     plt.clf()
 
-name = myname.get_name(5, box=10)
-
-ahalos = []
-
-
 def C_ionic_coverfrac(name, ahalo):
     """Plot covering fraction"""
     ahalo.plot_covering_fraction(elem="C", ion=4, line=1548,color="grey",label="C-IV")
@@ -153,14 +148,6 @@ def C_ionic_eq_width(name, ahalo):
     save_figure(path.join(outdir,name+"_CIV_eq_width"))
     plt.clf()
 
-
-ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="SMALL")
-ahalo.color = "grey"
-
-plot_r_offsets(ahalo)
-
-C_ionic_coverfrac("ion",ahalo)
-C_ionic_eq_width("ion",ahalo)
 
 #Column density plots
 def rel_c_colden(ahalo):
@@ -188,12 +175,25 @@ def hc_colden(ahalo):
     save_figure(path.join(outdir,"ion_C_colden"))
     plt.clf()
 
+ahalos = []
+
+#Plot some properties of the small box only
+name = myname.get_name(7, box=7.5)
+
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL")
+ahalo.color = "brown"
+
+plot_r_offsets(ahalo)
+
+C_ionic_coverfrac("ion",ahalo)
+C_ionic_eq_width("ion",ahalo)
+
 #rel_c_colden(ahalo)
 hc_colden(ahalo)
 
 ahalos = [ahalo,]
 
-for ss in (1,3,4,7,9):
+for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
     name = myname.get_name(ss, box=25)
     ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss])
     ahalo.color=colors[ss]
@@ -201,7 +201,7 @@ for ss in (1,3,4,7,9):
 
 do_civ_plots("feed",ahalos)
 
-if True: #False:
+if False:
     for nn in np.arange(0,7):
         gs = gridspec.GridSpec(9,2)
         ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))

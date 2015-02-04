@@ -92,7 +92,9 @@ def do_stuff(snap, path):
 if __name__ == "__main__":
     simbase = myname.get_name(5, box=10)
     do_stuff(5, simbase)
-    for ss in (1, 3, 4, 7, 9):
+    simbase = myname.get_name(7, box=7.5)
+    do_stuff(5, simbase)
+    for ss in (1, 3, 4, 5, 6,7, 9):
         simbase = myname.get_name(ss, box=25)
         do_stuff(5, simbase)
 

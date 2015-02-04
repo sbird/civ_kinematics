@@ -21,10 +21,9 @@ def get_civ(sim, box, start=1, end=10):
 
 #get_civ(7, 25,1,4)
 #This needs to have +"2" added to base above
+if __name__ == "__main__":
+    for ss in (0,1,2,3,4,5,6,7,9):
+        get_civ(ss, 25)
 
-for ss in (0,1,2,3,4,5,7,9):
-    get_civ(ss, 25)
-
-get_civ(5, 10)
-get_civ(7, 7.5)
-
+    get_civ(5, 10)
+    get_civ(7, 7.5)
