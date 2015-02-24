@@ -73,9 +73,9 @@ def generic_eq_width(ionname, elem, ion, line, name, ahalos):
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
     CGM_w = np.loadtxt("CGMofDLAs_avgW"+ionname+".dat")
     if np.size(CGM_w[:,0]) == 4:
-        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
+        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
     if np.size(CGM_w[:,0]) == 5:
-        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,50,100,200],[7,50,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
+        plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,50,100,200],[7,50,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
     save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
     plt.clf()
 
@@ -86,7 +86,7 @@ def generic_coverfrac(ionname, elem, ion, line, name, ahalos):
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$F(W_{"+str(line)+"} > 0.2 \AA)$")
     CGM_c = np.loadtxt("CGMofDLAs_Cf"+ionname+".dat")
-    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]],ecolor="black")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,275]-CGM_c[:,0]],ecolor="black")
     plt.ylim(0,1.0)
     plt.legend()
     save_figure(path.join(outdir,name+"_"+ionname+"_coverfrac"))
@@ -99,7 +99,7 @@ def HI_coverfrac(name, ahalos):
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$F(LLS)$")
     CGM_c = np.loadtxt("CGMofDLAs_Cfothick.dat")
-    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,50,117.5,200],[50,117.5,200,300]-CGM_c[:,0]],ecolor="black")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,50,117.5,200],[50,117.5,200,275]-CGM_c[:,0]],ecolor="black")
     plt.ylim(0,1.0)
     plt.legend()
     save_figure(path.join(outdir,name+"_LLS_coverfrac"))
@@ -131,7 +131,7 @@ def C_ionic_coverfrac(name, ahalo):
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$F(W_{1548} > 0.2 \AA)$")
     CGM_c = np.loadtxt("CGMofDLAs_CfCIV.dat")
-    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,300]-CGM_c[:,0]],ecolor="black")
+    plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,275]-CGM_c[:,0]],ecolor="black")
     plt.ylim(0,1.0)
     plt.legend()
     save_figure(path.join(outdir,name+"_CIV_coverfrac"))
@@ -144,7 +144,7 @@ def C_ionic_eq_width(name, ahalo):
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW(CIV 1548)")
     CGM_w = np.loadtxt("CGMofDLAs_avgWCIV.dat")
-    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,300]-CGM_w[:,0]], fmt='o',ecolor="black")
+    plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
     save_figure(path.join(outdir,name+"_CIV_eq_width"))
     plt.clf()
 
