@@ -61,7 +61,7 @@ class CIVPlot(ps.PlottingSpectra):
             else:
                 mean_plot_arr[ii] = np.median(arr_bin)
         return (center, mean_plot_arr)
-        
+
     def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, label=None,mean=True,line=True):
         """Helper function plotting a derived something as a function of radius"""
         center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
@@ -73,7 +73,7 @@ class CIVPlot(ps.PlottingSpectra):
         if line:
             plt.plot(center, mean_plot_arr, color=color, ls=ls, label=label)
         else:
-            yerr = self._generate_errors(plot_arr, offsets, radial_bins, np.size(offsets)/2., 5000)
+            yerr = self._generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 5000)
             plt.errorbar(center, mean_plot_arr, xerr=[radial_bins[:-1]-center,center-radial_bins[1:]],yerr=yerr,fmt='s',color=color, label=label)
         return (center, mean_plot_arr)
 
@@ -139,7 +139,7 @@ class CIVPlot(ps.PlottingSpectra):
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
-        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), midpoint/2., 5000)
+        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), midpoint, 5000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), xerr=[[0,],[7.5,]],yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, self.obs_bins, label=label,line=False)
 
