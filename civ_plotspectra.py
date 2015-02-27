@@ -25,7 +25,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in range(0,np.size(W_table)-1)])
         width =  np.array([W_table[i+1]-W_table[i] for i in range(0,np.size(W_table)-1)])
 
-        dX=self.absorption_distance()
+        dX=ps.spectra.units.absorption_distance(self.box, self.red)
         #equivalent width for each sightline
         eqw = self.equivalent_width(elem, ion, line)
         tot_lines = np.size(eqw)+self.discarded
@@ -159,7 +159,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         vrange = thresh
         den = self.get_col_density(elem, ion)
         contig = np.zeros(self.NumLos,dtype=np.float)
-        (roll, colden) = self._get_rolled_spectra(den)
+        (roll, colden) = ps.spectra._get_rolled_spectra(den)
         #deal with periodicity by making sure the deepest point is in the middle
         for ii in xrange(self.NumLos):
             # This is column density, not absorption, so we cannot
