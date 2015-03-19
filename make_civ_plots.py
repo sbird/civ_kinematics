@@ -192,6 +192,10 @@ C_ionic_eq_width("ion",ahalo)
 hc_colden(ahalo)
 
 ahalos = [ahalo,]
+#Add Illustris
+illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS")
+illhalo.color = "pink"
+ahalos.append(illhalo)
 
 for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
     name = myname.get_name(ss, box=25)
