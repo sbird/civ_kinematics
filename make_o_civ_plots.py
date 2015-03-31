@@ -15,48 +15,45 @@ outdir = path.join(myname.base, "civ_plots/")
 print "Plots at ",outdir
 
 #colors = {0:"pink", 1:"purple", 2:"cyan", 3:"green", 4:"gold", 5:"red", 7:"blue", 6:"grey", 8:"pink", 9:"orange", 'A':"grey", 'S':"red"}
-lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:"-", 8:"-",9:"-",'A':"--",  'S':"--",'VS':"-"}
+lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:"-", 8:"-",9:"-",'A':"--",  'S':"--",'VS':"-", 'I':"--"}
 #labels = {0:"ILLUS",1:"HVEL", 2:"HVNOAGN",3:"NOSN", 4:"WMNOAGN", 5:"MVEL",6:"METAL",7:"DEF", 8:"RICH",9:"FAST", 'A':"MOM", 'S':"SMALL"}
-labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",'S':"SMALL", 'VS':"VSMALL",6:"LOAD"}
-colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",'S':"grey", 'VS':"brown",6:"green"}
+labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",'S':"SMALL", 'VS':"VSMALL",6:"LOAD", 'I':"ILLUS"}
+colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",'S':"grey", 'VS':"brown",6:"green", 'I':"darkblue"}
 
 
-snaps = {1:4, 2:3.5, 3:3, 4:2.5, 5:2, 6:1.5, 7:1, 8:0.5, 9:0.3, 10:0, 901:6, 902:5, 903:4.5}
-def plot_line_density(sim, box, end=6, early=False):
+snaps = {1:4, 2:3.5, 3:3, 4:2.5, 5:2, 6:1.5, 7:1, 8:0.5, 9:0.3, 10:0, 901:6, 902:5, 903:4.5, 54:4.0, 57:3.5, 60:3.0, 64:2.5, 68:2.0}
+def plot_line_density(sim, box, base, sss):
     """Plot the line density to compare with Cooksey 2012.
        Threshold is 0.6 A."""
-    base = myname.get_name(sim, box=box)
-    #Line density
+    #Line density: 0.6 A
     lciv = []
+    #Line density: 0.3 A
+    lciv03 = []
     #Omega_CIV > 14
     om_civ = []
     #Omega_CIV 12-15
     om_civ_low = []
     #Redshift
     reds = []
-    sss = range(1,end)
-    if early:
-        sss = range(901,904)+sss
     for snap in sss:
         try:
             ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.)
             reds.append(snaps[snap])
             lciv.append(ahalo.line_density_eq_w(0.6,"C",4,1548))
+            lciv03.append(ahalo.line_density_eq_w(0.3,"C",4,1548))
             om_civ.append(10**8*ahalo.omega_abs(10**(13.8),1e15,"C",4))
             om_civ_low.append(10**8*ahalo.omega_abs(1e12,1e15,"C",4))
         except IOError:
             #This snapshot doesn't exist
             continue
     plt.figure(1)
-    if box==10:
-        sim = 'S'
-    if box==7.5:
-        sim = 'VS'
     plt.semilogy(reds, lciv, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     plt.figure(2)
     plt.semilogy(reds, om_civ, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     plt.figure(3)
     plt.semilogy(reds, om_civ_low, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
+    plt.figure(4)
+    plt.semilogy(reds, lciv03, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
 
 def plot_cddf(sim, snap, box):
     """Plot the CIV column density function"""
@@ -115,15 +112,15 @@ if __name__ == "__main__":
     #plt.figure(2)
     plt.xscale('log')
     plot_c12_eqw_data()
-    plt.xlim(10**(-2.5), 5.0)
+    plt.xlim(10**(-1.5), 2.0)
     ax1 = plt.gca()
     ax2 = ax1.twiny()
-    plot_dor_cddf(scale=1.13e20/1548**2/fosc)
+    #plot_dor_cddf(scale=1.13e20/1548**2/fosc)
     #plt.legend(loc="upper right")
     plt.yscale('log')
     plt.xscale('log')
     plt.ylim(1e-2,400)
-    plt.xlim(linear_cog_col(10**(-2.5),1548, fosc), linear_cog_col(5.0,1548, fosc))
+    plt.xlim(linear_cog_col(10**(-1.5),1548, fosc), linear_cog_col(2.0,1548, fosc))
     save_figure(path.join(outdir,"civ_eqw"))
     plt.clf()
     for s in sims:
@@ -146,17 +143,16 @@ if __name__ == "__main__":
     save_figure(path.join(outdir,"civ_eqw_z35"))
     plt.clf()
     for s in sims:
-        plot_line_density(s, 25)
-    #plot_line_density(5, 10)
-    plot_line_density(7, 7.5)
-    #plot_line_density(4, 25,10)
-    #plot_line_density(7, 25, early=True)
+        plot_line_density(s,25,myname.get_name(s, box=25), range(1,6))
     #Small boxes seem too small. Alarming.
-    #plot_line_density(5, 10)
-    #plot_line_density(7, 7.5)
+    #plot_line_density('S',10,myname.get_name(5, box=10), range(1,6))
+    plot_line_density('I',75,path.expanduser("~/data/Illustris"), [54,57,60,64,68])
+    plot_line_density('VS',7.5,myname.get_name(7, box=7.5), range(1,6))
+    #plot_line_density(4,25,myname.get_name(4, box=25), range(1,10))
+    #plot_line_density(7,25,myname.get_name(7, box=25), range(901,904)+range(1,6))
     plt.figure(1)
     plot_c12_line_den()
-    plt.ylabel(r"$dN/dX \,(W_{r,1548} \geq W_{r, 0.6}$)")
+    plt.ylabel(r"$dN/dX \,(W_{1548} \geq W_{0.6}$)")
     plt.xlabel("z")
     plt.xlim(1, 7)
     plt.ylim(1e-3, 1)
@@ -180,4 +176,13 @@ if __name__ == "__main__":
     plt.xlim(1, 7)
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_omega_low"))
+    plt.clf()
+    plt.figure(4)
+    plot_c12_line_den_ew03()
+    plt.ylabel(r"$dN/dX \,(W_{1548} \geq W_{0.3}$)")
+    plt.xlabel("z")
+    plt.xlim(1, 7)
+    plt.ylim(1e-3, 1)
+    plt.legend(loc="upper right")
+    save_figure(path.join(outdir,"civ_line_dens_low"))
     plt.clf()

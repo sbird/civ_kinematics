@@ -69,6 +69,17 @@ def plot_c12_omega_civ():
     omega_civ_err = [0.39,  0.32,  0.28,  0.23,  0.23,  0.17,  0.17,  0.18,  0.22,  0.13]
     plt.errorbar(redshift, omega_civ, marker='o',fmt='none', yerr = omega_civ_err, xerr=rederr, ecolor="black")
 
+def plot_c12_line_den_ew03():
+    """Plot the CIV EW > 0.3 from Cooksey 2012"""
+    data = np.loadtxt("Cooksey_2012_EW03.dat")
+    zlo = data[:,0]
+    zhi = data[:,1]
+    zbar = (zlo+zhi)/2
+    dndx = data[:,2]
+    errlo = data[:,3]
+    errhi = data[:,4]
+    plt.errorbar(zbar, dndx, xerr = [zbar-zlo, zhi-zbar], yerr = [errlo, errhi], ecolor="black", marker="o", fmt="none")
+
 def plot_c12_line_den():
     """Plot data from Cooksey 2012 CIV line density"""
     redshift = [1.55687,  1.65971,  1.73999,  1.82360,  1.91460,  2.01778,  2.15320,  2.35608,  2.72298,  3.25860]
