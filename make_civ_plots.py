@@ -76,6 +76,7 @@ def generic_eq_width(ionname, elem, ion, line, name, ahalos):
         plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
     if np.size(CGM_w[:,0]) == 5:
         plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,50,100,200],[7,50,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
+    plt.legend()
     save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
     plt.clf()
 
@@ -180,7 +181,7 @@ ahalos = []
 #Plot some properties of the small box only
 name = myname.get_name(7, box=7.5)
 
-ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL")
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL", spec_res = 50.)
 ahalo.color = "brown"
 
 plot_r_offsets(ahalo)
@@ -193,20 +194,63 @@ hc_colden(ahalo)
 
 ahalos = [ahalo,]
 #Add Illustris
-illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS")
+illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
 illhalo.color = "pink"
 ahalos.append(illhalo)
 
 for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
     name = myname.get_name(ss, box=25)
-    ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss])
+    ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
     ahalo.color=colors[ss]
     ahalos.append(ahalo)
 
 do_civ_plots("feed",ahalos)
 
-if False:
-    for nn in np.arange(0,7):
+#Do redshift evolution
+for nn in (7,4):
+    name = myname.get_name(nn, box=25)
+    reds = []
+    zzz = {1:4, 3:3, 5:2}
+    colorz = {1:"blue", 3:"green", 5:"red"}
+    for i in (1,3,5):
+        tmp = ps.CIVPlot(i, name, savefile="nr_dla_spectra.hdf5", label=labels[nn]+" z="+str(zzz[i]), spec_res = 50.)
+        tmp.color=colorz[i]
+        reds.append(tmp)
+    do_civ_plots("redshift_"+str(nn),reds)
+
+def qso_eq_width(ionname, elem, ion, line, name, ahalos):
+    """Plot covering fraction"""
+    for ahalo in ahalos:
+        ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(W_{"+str(line)+"} > 0.2 \AA)$")
+    CGM_c = np.loadtxt("QPQ7eqw.dat")
+    #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
+    if elem == 4:
+        plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM[:,1]-CGM_c[:,3]],ecolor="black")
+    elif elem == 2:
+        plt.errorbar(CGM_c[:,3], CGM_c[:,4], yerr = CGM_c[:,5], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM[:,1]-CGM_c[:,3]],ecolor="black")
+    else:
+        raise RuntimeError("No data for ion")
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_"+ionname+"_coverfrac"))
+    plt.clf()
+
+def do_qso_plots(name, ahalos):
+    """Equivalent width and covering fractions for quasars"""
+    #generic_coverfrac("CIV", "C", 4, 1548, name, ahalos)
+    #generic_coverfrac("CII", "C", 2, 1334, name, ahalos)
+    qso_eq_width("CII", "C", 2, 1334, name, ahalos)
+    qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
+
+qsos = []
+for i in (4,7,9):
+    name = myname.get_name(i, box=25)
+    qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[ss], spec_res = 50.))
+
+if True:
+    for nn in xrange(0,20):
         gs = gridspec.GridSpec(9,2)
         ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
         #Adjust the default plot parameters, which do not scale well in a gridspec.
@@ -215,9 +259,9 @@ if False:
         matplotlib.rc('axes', labelsize=8)
         matplotlib.rc('font', size=6)
         matplotlib.rc('lines', linewidth=1.5)
-        plot_den(ahalo, ax, nn+100, color="red")
-        plot_den(ahalo, ax, nn)
-        offsets = ahalo.get_offsets()
+        plot_den(ahalos[-2], ax, nn+100, color="red")
+        plot_den(ahalos[-2], ax, nn)
+        offsets = ahalos[-2].get_offsets()
         ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
         odir = path.join(outdir, "spectra")
         save_figure(path.join(odir,str(nn)+"_cosmo"+"_CIV_spec"))
