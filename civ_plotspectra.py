@@ -35,13 +35,13 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             return (center, center*tot_f_W)
         return (center, tot_f_W)
 
-    def plot_eq_width_dist(self,elem = "C", ion = 4, line=1548, dlogW=0.2, minW=0.004, maxW=5., color="blue"):
+    def plot_eq_width_dist(self,elem = "C", ion = 4, line=1548, dlogW=0.2, minW=0.004, maxW=5., color="blue", ls="-"):
         """Plots the equivalent width frequency function."""
         (W,f_W)=self.eq_width_dist(elem, ion, line, dlogW,minW*0.9,maxW*1.1)
-        plt.semilogy(W,f_W,color=color, label=self.label)
+        plt.semilogy(W,f_W,color=color, label=self.label, ls=ls)
         ax=plt.gca()
-        ax.set_xlabel(r"$W_{r,1548} (\AA)$")
-        ax.set_ylabel(r"$f(W_{r,1548}) (\AA^{-1})$")
+        ax.set_xlabel(r"$W_{1548} (\AA)$")
+        ax.set_ylabel(r"$f(W_{1548}) (\AA^{-1})$")
         plt.xlim(minW, maxW)
 
     def line_density_dist(self, thresh=0.6, elem = "C", ion = 4, line=1548):
