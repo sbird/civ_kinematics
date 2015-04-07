@@ -269,6 +269,7 @@ qsos = []
 for i in (4,7,9):
     name = myname.get_name(i, box=25)
     qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[i], spec_res = 50.))
+    qsos[-1].def_radial_bins = np.arange(0, 1001, 100)
 
 do_qso_plots("qso", qsos)
 
