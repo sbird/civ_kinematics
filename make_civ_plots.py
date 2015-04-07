@@ -85,7 +85,7 @@ def generic_coverfrac(ionname, elem, ion, line, name, ahalos):
     for ahalo in ahalos:
         ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(W_{"+str(line)+"} > 0.2 \AA)$")
+    plt.ylabel(r"$F(W_{"+str(line)+r"} > 0.2 \AA)$")
     CGM_c = np.loadtxt("CGMofDLAs_Cf"+ionname+".dat")
     plt.errorbar(CGM_c[:,0], CGM_c[:,2], yerr = [CGM_c[:,2]-CGM_c[:,1],CGM_c[:,3]-CGM_c[:,2]], fmt='o', xerr=[CGM_c[:,0]-[7,100,200],[100,200,275]-CGM_c[:,0]],ecolor="black")
     plt.ylim(0,1.0)
@@ -165,6 +165,7 @@ def rel_c_colden(ahalo):
     plt.clf()
 
 def hc_colden(ahalo):
+    """Plot the column densities for different CIV ions"""
     ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII")
     ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII")
     ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV")
@@ -221,15 +222,35 @@ for nn in (7,4):
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     """Plot covering fraction"""
     for ahalo in ahalos:
-        ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
+        ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(W_{"+str(line)+"} > 0.2 \AA)$")
+    plt.ylabel(r"EW("+ionname+" "+str(line)+")")
     CGM_c = np.loadtxt("QPQ7eqw.dat")
     #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
     if elem == 4:
-        plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM[:,1]-CGM_c[:,3]],ecolor="black")
+        plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
     elif elem == 2:
-        plt.errorbar(CGM_c[:,3], CGM_c[:,4], yerr = CGM_c[:,5], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM[:,1]-CGM_c[:,3]],ecolor="black")
+        plt.errorbar(CGM_c[:,3], CGM_c[:,4], yerr = CGM_c[:,5], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
+    else:
+        raise RuntimeError("No data for ion")
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
+    plt.clf()
+
+def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
+    """Plot covering fraction"""
+    for ahalo in ahalos:
+        ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(W_{"+str(line)+r"} > 0.2 \AA)$")
+    CGM_c = np.loadtxt("QPQ7fc.dat")
+    #Rmin Rmax mpair   fc1334     +1s    -1s   mpair fc1548  +1s      -1s
+    Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
+    if elem == 4:
+        plt.errorbar(Rmean, CGM_c[:,7], yerr = [CGM_c[:,8],CGM_c[:,9]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
+    elif elem == 2:
+        plt.errorbar(Rmean, CGM_c[:,3], yerr = [CGM_c[:,4], CGM_c[:,5]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
     else:
         raise RuntimeError("No data for ion")
     plt.ylim(0,1.0)
@@ -239,15 +260,15 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
 
 def do_qso_plots(name, ahalos):
     """Equivalent width and covering fractions for quasars"""
-    #generic_coverfrac("CIV", "C", 4, 1548, name, ahalos)
-    #generic_coverfrac("CII", "C", 2, 1334, name, ahalos)
+    qso_coverfrac("CIV", "C", 4, 1548, name, ahalos)
+    qso_coverfrac("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
 
 qsos = []
 for i in (4,7,9):
     name = myname.get_name(i, box=25)
-    qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[ss], spec_res = 50.))
+    qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[i], spec_res = 50.))
 
 if True:
     rands = np.random.randint(0,1000,20)
