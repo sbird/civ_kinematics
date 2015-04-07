@@ -8,7 +8,7 @@ def get_civ(sim, box, start=1, end=10):
     #Resolution: Cooksey is SDSS which is ~100 km/s, but D'Odorico is HIRES.
     for n in xrange(start,end):
         try:
-            ahalo = rs.RandSpectra(n, base, numlos=10000, thresh=1e12, res=5., savefile="rand_civ_spectra.hdf5", elem="C", ion=4)
+            ahalo = rs.RandSpectra(n, base, ndla=10000, numlos=22000, thresh=1e12, res=5., savefile="rand_civ_spectra.hdf5", elem="C", ion=4)
             ahalo.get_tau("C",4,1548, force_recompute=True)
             ahalo.get_tau("C",-1,1548, force_recompute=True)
             ahalo.get_density("C",4)
