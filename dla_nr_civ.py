@@ -53,7 +53,7 @@ class DLANrSpectra(spectra.Spectra):
     def get_weighted_perp(self, num):
         """Get a random perturbation with a radius weighted by the number of
            quasars in radial bins in the DLA-CGM survey."""
-        rperp = np.loadtxt("CGMofDLAs_Rperp.dat")
+        rperp = np.loadtxt("CGMofDLAs_Rperp.dat")[:,0]
         rbins = np.min(rperp),25,50,75,100,125,150,175,200,225,250,275
         (hists, rbins) = np.histogram(rperp, rbins)
         conv = self.hubble/self.atime
