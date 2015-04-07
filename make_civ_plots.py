@@ -225,7 +225,7 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
         ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
-    CGM_c = np.loadtxt("QPQ7eqw.dat")
+    CGM_c = np.loadtxt("QPQ7eqW.dat")
     #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
     if ion == 4:
         plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
