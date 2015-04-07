@@ -250,7 +250,8 @@ for i in (4,7,9):
     qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[ss], spec_res = 50.))
 
 if True:
-    for nn in xrange(0,20):
+    rands = np.random.randint(0,1000,20)
+    for nn in rands:
         gs = gridspec.GridSpec(9,2)
         ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
         #Adjust the default plot parameters, which do not scale well in a gridspec.
@@ -259,7 +260,7 @@ if True:
         matplotlib.rc('axes', labelsize=8)
         matplotlib.rc('font', size=6)
         matplotlib.rc('lines', linewidth=1.5)
-        plot_den(ahalos[-2], ax, nn+100, color="red")
+        plot_den(ahalos[-2], ax, nn+1000, color="red")
         plot_den(ahalos[-2], ax, nn)
         offsets = ahalos[-2].get_offsets()
         ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
