@@ -63,7 +63,7 @@ class QSONrSpectra(spectra.Spectra):
         """Get a random perturbation with a radius weighted by the number of
            quasars in radial bins in the QPQ survey.
            This needs updating with better lines"""
-        rperp = np.loadtxt("apj503418t2_mrt.txt")[:,0]
+        rperp = np.loadtxt("apj503418t2_mrt.txt")
         rbins = np.arange(np.min(rperp), 1000, 100)
         (hists, rbins) = np.histogram(rperp, rbins)
         conv = self.hubble/self.atime
