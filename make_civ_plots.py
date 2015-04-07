@@ -178,12 +178,13 @@ def hc_colden(ahalo):
     plt.clf()
 
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
-    """Plot covering fraction"""
+    """Plot covering fraction for QSO pairs"""
+    CGM_c = np.loadtxt("QPQ7eqW.dat")
     for ahalo in ahalos:
+        ahalo.obs_bins = np.concatenate([CGM_c[:,0], [1000,]])
         ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
-    CGM_c = np.loadtxt("QPQ7eqW.dat")
     #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
     if ion == 4:
         plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
@@ -197,12 +198,13 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     plt.clf()
 
 def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
-    """Plot covering fraction"""
+    """Plot covering fraction for QSOs"""
+    CGM_c = np.loadtxt("QPQ7fc.dat")
     for ahalo in ahalos:
+        ahalo.obs_bins = np.concatenate([CGM_c[:,0], [1000,]])
         ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$F(W_{"+str(line)+r"} > 0.2 \AA)$")
-    CGM_c = np.loadtxt("QPQ7fc.dat")
     #Rmin Rmax mpair   fc1334     +1s    -1s   mpair fc1548  +1s      -1s
     Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
     if ion == 4:
@@ -227,7 +229,7 @@ qsos = []
 for i in (4,7,9):
     name = myname.get_name(i, box=25)
     qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[i], spec_res = 50.))
-    qsos[-1].def_radial_bins = np.arange(0, 1001, 100)
+    qsos[-1].color=colors[i]
 
 do_qso_plots("qso", qsos)
 
