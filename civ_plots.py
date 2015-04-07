@@ -136,7 +136,7 @@ class CIVPlot(ps.PlottingSpectra):
         if elem != "C" or ion != 4:
             return np.zeros(num, dtype=np.float64)
         sEWs = np.loadtxt("CGMofDLAs_Rperp.dat")[:,2]
-        (hist, edges) = np.histogram(np.log10(sEWs))
+        (hists, edges) = np.histogram(np.log10(sEWs))
         err = np.empty(num,dtype=np.float64)
         total = 0
         for ii in xrange(np.size(hists)):
