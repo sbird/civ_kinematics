@@ -8,6 +8,7 @@ class CIVPlot(ps.PlottingSpectra):
     """Class to compute various statistics specific to the CIV near DLAs"""
     def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
     obs_bins = np.array([5,100,200,275])
+    nobs = 40
     color=None
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
@@ -28,7 +29,7 @@ class CIVPlot(ps.PlottingSpectra):
         bootstrap = spectra[index]
         bootoffsets = offsets[index]
         if error > 0.:
-            bootstrap += np.random.normal(0,error,size=samples)
+            bootstrap += np.random.normal(0,error,size=nsamples)
         booted = self._get_means_binned(bootstrap, bootoffsets, radial_bins, True)
         return booted
 
@@ -42,7 +43,7 @@ class CIVPlot(ps.PlottingSpectra):
             error - If > 0, perturb each element of the subsample with a Gaussian of this sd.
         """
         #Generate a bunch of bootstrapped samples, each of size nset,  from our spectra
-        sampled_mean = np.array([self._bootstrap_sample(spectra, offsets, radial_bins, nset, error)[1] for i in xrange(nsamples)])
+        sampled_mean = np.array([self._bootstrap_sample(spectra, offsets, radial_bins, nset, error)[1] for _ in xrange(nsamples)])
         meds = np.median(sampled_mean,axis=0)
         lerr = meds - np.percentile(sampled_mean, 50-34, axis=0)
         uerr = np.percentile(sampled_mean, 50+34, axis=0) - meds
@@ -73,7 +74,7 @@ class CIVPlot(ps.PlottingSpectra):
         if line:
             plt.plot(center, mean_plot_arr, color=color, ls=ls, label=label)
         else:
-            yerr = self._generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 5000)
+            yerr = self._generate_errors(plot_arr, offsets, radial_bins, self.nobs, 0)
             plt.errorbar(center, mean_plot_arr, xerr=[radial_bins[:-1]-center,center-radial_bins[1:]],yerr=yerr,fmt='s',color=color, label=label)
         return (center, mean_plot_arr)
 
@@ -156,7 +157,7 @@ class CIVPlot(ps.PlottingSpectra):
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         midpoint = self.NumLos/2
-        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), midpoint, 5000)
+        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.nobs,0.)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), xerr=[[0,],[7.5,]],yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, self.obs_bins, label=label,line=False)
 
