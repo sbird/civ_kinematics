@@ -131,13 +131,30 @@ class CIVPlot(ps.PlottingSpectra):
         covering[np.where(cdensity[midpoint:] > cd_thresh)] = 1
         return self._plot_radial(covering, color, ls, "--", radial_bins, label=label)
 
+    def _get_errors(self, num, elem="C", ion=4):
+        """Get errors on the equivalent widths by sampling from the observed errors"""
+        if elem != "C" or ion != 4:
+            return np.zeros(num, dtype=np.float64)
+        sEWs = np.loadtxt("CGMofDLAs_Rperp.dat")[:,2]
+        (hist, edges) = np.histogram(np.log10(sEWs))
+        err = np.empty(num,dtype=np.float64)
+        total = 0
+        for ii in xrange(np.size(hists)):
+            #How many sightlines in this bin?
+            #The proportion from the observed survey, but at least 1 and no more
+            #than we have left in the bag
+            this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1)), num - total))
+            err[total:total+this] = np.random.normal(loc=0.,scale=10**((edges[ii+1] + edges[ii])/2.),size=this)
+            total+=this
+        return err
+
     def plot_eq_width(self, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = def_radial_bins, label=None):
         """
         Plot the equivalent width of a given pair line above a threshold in radial bins
         """
         if color == None:
             color=self.color
-        eq_width = self.equivalent_width(elem, ion, line)
+        eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         midpoint = self.NumLos/2
         yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), midpoint, 5000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), xerr=[[0,],[7.5,]],yerr=yerr, color=color, fmt='s')
