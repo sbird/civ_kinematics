@@ -177,48 +177,6 @@ def hc_colden(ahalo):
     save_figure(path.join(outdir,"ion_C_colden"))
     plt.clf()
 
-ahalos = []
-
-#Plot some properties of the small box only
-name = myname.get_name(7, box=7.5)
-
-ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL", spec_res = 50.)
-ahalo.color = "brown"
-
-plot_r_offsets(ahalo)
-
-C_ionic_coverfrac("ion",ahalo)
-C_ionic_eq_width("ion",ahalo)
-
-#rel_c_colden(ahalo)
-hc_colden(ahalo)
-
-ahalos = [ahalo,]
-#Add Illustris
-illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
-illhalo.color = "pink"
-ahalos.append(illhalo)
-
-for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
-    name = myname.get_name(ss, box=25)
-    ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
-    ahalo.color=colors[ss]
-    ahalos.append(ahalo)
-
-do_civ_plots("feed",ahalos)
-
-#Do redshift evolution
-for nn in (7,4):
-    name = myname.get_name(nn, box=25)
-    reds = []
-    zzz = {1:4, 3:3, 5:2}
-    colorz = {1:"blue", 3:"green", 5:"red"}
-    for i in (1,3,5):
-        tmp = ps.CIVPlot(i, name, savefile="nr_dla_spectra.hdf5", label=labels[nn]+" z="+str(zzz[i]), spec_res = 50.)
-        tmp.color=colorz[i]
-        reds.append(tmp)
-    do_civ_plots("redshift_"+str(nn),reds)
-
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     """Plot covering fraction"""
     for ahalo in ahalos:
@@ -273,7 +231,50 @@ for i in (4,7,9):
 
 do_qso_plots("qso", qsos)
 
-if True:
+print "Done QSO"
+ahalos = []
+
+#Plot some properties of the small box only
+name = myname.get_name(7, box=7.5)
+
+ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL", spec_res = 50.)
+ahalo.color = "brown"
+
+plot_r_offsets(ahalo)
+
+C_ionic_coverfrac("ion",ahalo)
+C_ionic_eq_width("ion",ahalo)
+
+#rel_c_colden(ahalo)
+hc_colden(ahalo)
+
+ahalos = [ahalo,]
+#Add Illustris
+illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
+illhalo.color = "pink"
+ahalos.append(illhalo)
+
+for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
+    name = myname.get_name(ss, box=25)
+    ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
+    ahalo.color=colors[ss]
+    ahalos.append(ahalo)
+
+do_civ_plots("feed",ahalos)
+
+#Do redshift evolution
+for nn in (7,4):
+    name = myname.get_name(nn, box=25)
+    reds = []
+    zzz = {1:4, 3:3, 5:2}
+    colorz = {1:"blue", 3:"green", 5:"red"}
+    for i in (1,3,5):
+        tmp = ps.CIVPlot(i, name, savefile="nr_dla_spectra.hdf5", label=labels[nn]+" z="+str(zzz[i]), spec_res = 50.)
+        tmp.color=colorz[i]
+        reds.append(tmp)
+    do_civ_plots("redshift_"+str(nn),reds)
+
+if False:
     rands = np.random.randint(0,1000,20)
     for nn in rands:
         gs = gridspec.GridSpec(9,2)
