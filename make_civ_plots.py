@@ -285,6 +285,8 @@ if True:
         matplotlib.rc('lines', linewidth=1.5)
         plot_den(ahalos[-2], ax, nn+1000, color="red")
         plot_den(ahalos[-2], ax, nn)
+        np.savetxt(str(nn)+"_tau_DLA.txt",ahalos[-2].get_tau("C",4,1548,nn))
+        np.savetxt(str(nn)+"_tau_CGM.txt",ahalos[-2].get_tau("C",4,1548,nn+1000))
         offsets = ahalos[-2].get_offsets()
         ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
         odir = path.join(outdir, "spectra")
