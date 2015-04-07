@@ -227,9 +227,9 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
     CGM_c = np.loadtxt("QPQ7eqw.dat")
     #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
-    if elem == 4:
+    if ion == 4:
         plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
-    elif elem == 2:
+    elif ion == 2:
         plt.errorbar(CGM_c[:,3], CGM_c[:,4], yerr = CGM_c[:,5], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
     else:
         raise RuntimeError("No data for ion")
@@ -247,9 +247,9 @@ def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
     CGM_c = np.loadtxt("QPQ7fc.dat")
     #Rmin Rmax mpair   fc1334     +1s    -1s   mpair fc1548  +1s      -1s
     Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
-    if elem == 4:
+    if ion == 4:
         plt.errorbar(Rmean, CGM_c[:,7], yerr = [CGM_c[:,8],CGM_c[:,9]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
-    elif elem == 2:
+    elif ion == 2:
         plt.errorbar(Rmean, CGM_c[:,3], yerr = [CGM_c[:,4], CGM_c[:,5]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
     else:
         raise RuntimeError("No data for ion")
