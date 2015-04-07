@@ -64,7 +64,7 @@ class QSONrSpectra(spectra.Spectra):
            quasars in radial bins in the QPQ survey.
            This needs updating with better lines"""
         rperp = np.loadtxt("apj503418t2_mrt.txt")
-        rbins = np.arange(np.min(rperp), 1000, 100)
+        rbins = np.arange(np.min(rperp), 1000+np.min(rperp)+1, 100)
         (hists, rbins) = np.histogram(rperp, rbins)
         conv = self.hubble/self.atime
         rbins *= conv
@@ -100,15 +100,6 @@ def do_stuff(snap, path):
     halo.save_file()
 
 if __name__ == "__main__":
-#    simbase = myname.get_name(5, box=10)
-#    do_stuff(5, simbase)
-#    simbase = myname.get_name(7, box=7.5)
-#    do_stuff(5, simbase)
-   for ss in (1, 3, 4, 5, 6, 7, 9):
+   for ss in (1, 4, 7, 9):
        simbase = myname.get_name(ss, box=25)
        do_stuff(5, simbase)
-    #for ss in (4,7):
-        #simbase = myname.get_name(ss, box=25)
-        #do_stuff(3, simbase)
-        #do_stuff(1, simbase)
-
