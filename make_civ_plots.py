@@ -270,6 +270,8 @@ for i in (4,7,9):
     name = myname.get_name(i, box=25)
     qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[i], spec_res = 50.))
 
+do_qso_plots("qso", qsos)
+
 if True:
     rands = np.random.randint(0,1000,20)
     for nn in rands:
