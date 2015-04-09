@@ -155,9 +155,10 @@ class CIVPlot(ps.PlottingSpectra):
         """
         if color == None:
             color=self.color
-        eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
-        midpoint = self.NumLos/2
-        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.nobs,5000)
+#         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
+        eq_width = self.equivalent_width(elem, ion, line)
+        midpoint = self.NumLos/2  #self.nobs below
+        yerr = self._generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,5000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), xerr=[[0,],[7.5,]],yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, self.obs_bins, label=label,line=False)
 
