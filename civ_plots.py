@@ -191,6 +191,9 @@ class CIVPlot(ps.PlottingSpectra):
         upper = np.zeros(np.size(radial_bins)-1)
         lower = np.zeros(np.size(radial_bins)-1)
         offsets = self.get_offsets()[ind]
+        lbins = np.linspace(0, 120, 7)
+        (hist, _) = np.histogram(vel_offsets,lbins)
+        plt.bar(lbins[:,-1], hist*self.nobs/(self.NumLos/2.), width=20, color=color, ls=ls)
         for ii in np.arange(np.size(radial_bins)-1):
             arr_bin = vel_offsets[np.where(np.logical_and(offsets > radial_bins[ii], offsets < radial_bins[ii+1]))]
             if np.size(arr_bin) == 0:
@@ -198,9 +201,9 @@ class CIVPlot(ps.PlottingSpectra):
             mean_plot_arr[ii] = np.median(arr_bin)
             upper[ii] = np.percentile(arr_bin,75)
             lower[ii] = np.percentile(arr_bin,25)
-        plt.plot(center, mean_plot_arr, color=color, ls=ls, label=self.label)
-        plt.plot(center, lower, color=color, ls=ls2)
-        plt.plot(center, upper, color=color, ls=ls2)
+        #plt.plot(center, mean_plot_arr, color=color, ls=ls, label=self.label)
+        #plt.plot(center, lower, color=color, ls=ls2)
+        #plt.plot(center, upper, color=color, ls=ls2)
         return (center, mean_plot_arr)
 
     def _get_flux_weigh_vel(self, tau):
