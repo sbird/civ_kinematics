@@ -74,7 +74,7 @@ class CIVPlot(ps.PlottingSpectra):
         if line:
             plt.plot(center, mean_plot_arr, color=color, ls=ls, label=label)
         else:
-            yerr = self._generate_errors(plot_arr, offsets, radial_bins, self.nobs, 5000)
+            yerr = self._generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 5000)
             plt.errorbar(center, mean_plot_arr, xerr=[radial_bins[:-1]-center,center-radial_bins[1:]],yerr=yerr,fmt='s',color=color, label=label)
         return (center, mean_plot_arr)
 
