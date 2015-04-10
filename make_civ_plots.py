@@ -232,25 +232,19 @@ for i in (4,7,9):
     qsos[-1].color=colors[i]
 
 do_qso_plots("qso", qsos)
+name = myname.get_name(4, box=25)
+do_qso_plots("small_qso", [qsos[0], ps.CIVPlot(5, name, savefile="nr_small_spectra.hdf5", label=labels[i], spec_res = 50.)])
 
 print "Done QSO"
 ahalos = []
 
 #Plot some properties of the small box only
-name = myname.get_name(7, box=7.5)
+#name = myname.get_name(7, box=7.5)
 
-ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL", spec_res = 50.)
-ahalo.color = "brown"
+#ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label="VSMALL", spec_res = 50.)
+#ahalo.color = "brown"
 
-plot_r_offsets(ahalo)
-
-C_ionic_coverfrac("ion",ahalo)
-C_ionic_eq_width("ion",ahalo)
-
-#rel_c_colden(ahalo)
-hc_colden(ahalo)
-
-ahalos = [ahalo,]
+#ahalos = [ahalo,]
 #Add Illustris
 illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
 illhalo.color = "pink"
@@ -264,6 +258,14 @@ for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
 
 do_civ_plots("feed",ahalos)
 
+plot_r_offsets(ahalos[-2])
+
+C_ionic_coverfrac("ion",ahalos[-2])
+C_ionic_eq_width("ion",ahalos[-2])
+
+#rel_c_colden(ahalo)
+hc_colden(ahalos[-2])
+
 #Do redshift evolution
 for nn in (7,4):
     name = myname.get_name(nn, box=25)
@@ -276,8 +278,10 @@ for nn in (7,4):
         reds.append(tmp)
     do_civ_plots("redshift_"+str(nn),reds)
 
-if False:
+if True:
     rands = np.random.randint(0,1000,20)
+    offset = ahalos[-2].get_offsets()[rands]
+    np.savetxt("tau_Rperp_table.txt", np.sort(np.vstack((np.arange(0,1000), ahalos[-2].get_offsets())).T,0))
     for nn in rands:
         gs = gridspec.GridSpec(9,2)
         ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
