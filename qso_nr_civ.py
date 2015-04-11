@@ -66,7 +66,7 @@ class QSONrSpectra(spectra.Spectra):
         """
         rperp = np.loadtxt("QSORperpred.txt")
         #Select quasars in the given redshift range
-        ind = np.where(np.logical_and(rperp[:,1] > self.redmin, rperp[:,0] < self.redmax))
+        ind = np.where(np.logical_and(rperp[:,1] > self.redmin, rperp[:,1] < self.redmax))
         rbins = np.arange(30, 1000, 15)
         (hists, rbins) = np.histogram(rperp[ind,0][0], rbins)
         conv = self.hubble/self.atime
