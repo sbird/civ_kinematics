@@ -106,7 +106,7 @@ class AggCIVPlot(object):
         #Listify if necessary
         try:
             nums[0]
-        except IndexError:
+        except TypeError:
             nums = (nums,)
         nums = np.sort(nums)
         self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res) for n in nums]
