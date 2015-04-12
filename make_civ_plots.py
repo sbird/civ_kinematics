@@ -228,12 +228,10 @@ def do_qso_plots(name, ahalos):
 qsos = []
 for i in (4,7,9):
     name = myname.get_name(i, box=25)
-    qsos.append(ps.CIVPlot(5, name, savefile="nr_qso_spectra.hdf5", label=labels[i], spec_res = 50.))
+    qsos.append(ps.AggCIVPlot((3,4,5), name, savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
     qsos[-1].color=colors[i]
 
 do_qso_plots("qso", qsos)
-name = myname.get_name(4, box=25)
-do_qso_plots("small_qso", [qsos[0], ps.CIVPlot(5, name, savefile="nr_small_spectra.hdf5", label=labels[i], spec_res = 50.)])
 
 print "Done QSO"
 ahalos = []
@@ -246,13 +244,13 @@ ahalos = []
 
 #ahalos = [ahalo,]
 #Add Illustris
-illhalo = ps.CIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
+illhalo = ps.AggCIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
 illhalo.color = "pink"
 ahalos.append(illhalo)
 
 for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
     name = myname.get_name(ss, box=25)
-    ahalo = ps.CIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
+    ahalo = ps.AggCIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
     ahalo.color=colors[ss]
     ahalos.append(ahalo)
 
@@ -264,20 +262,20 @@ C_ionic_coverfrac("ion",ahalos[-2])
 C_ionic_eq_width("ion",ahalos[-2])
 
 #rel_c_colden(ahalo)
-hc_colden(ahalos[-2])
+#hc_colden(ahalos[-2])
 
 #Do redshift evolution
-for nn in (7,4):
-    name = myname.get_name(nn, box=25)
-    reds = []
-    zzz = {1:4, 3:3, 5:2}
-    colorz = {1:"blue", 3:"green", 5:"red"}
-    for i in (1,3,5):
-        tmp = ps.CIVPlot(i, name, savefile="nr_dla_spectra.hdf5", label=labels[nn]+" z="+str(zzz[i]), spec_res = 50.)
-        tmp.color=colorz[i]
-        reds.append(tmp)
-    do_civ_plots("redshift_"+str(nn),reds)
-
+# for nn in (7,4):
+#     name = myname.get_name(nn, box=25)
+#     reds = []
+#     zzz = {1:4, 3:3, 5:2}
+#     colorz = {1:"blue", 3:"green", 5:"red"}
+#     for i in (1,3,5):
+#         tmp = ps.CIVPlot(i, name, savefile="nr_dla_spectra.hdf5", label=labels[nn]+" z="+str(zzz[i]), spec_res = 50.)
+#         tmp.color=colorz[i]
+#         reds.append(tmp)
+#     do_civ_plots("redshift_"+str(nn),reds)
+#
 if True:
     rands = np.random.randint(0,1000,20)
     offset = ahalos[-2].get_offsets()[rands]
