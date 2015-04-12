@@ -67,7 +67,7 @@ class QSONrSpectra(spectra.Spectra):
         rperp = np.loadtxt("QSORperpred.txt")
         #Select quasars in the given redshift range
         ind = np.where(np.logical_and(rperp[:,1] > self.redmin, rperp[:,1] < self.redmax))
-        rbins = np.arange(30, 1000, 15)
+        rbins = np.logspace(1.5, 3, 6)
         (hists, rbins) = np.histogram(rperp[ind,0][0], rbins)
         conv = self.hubble/self.atime
         rbins *= conv
@@ -88,7 +88,7 @@ class QSONrSpectra(spectra.Spectra):
 
 def do_stuff(snap, path, redmin, redmax):
     """Make lines"""
-    halo = QSONrSpectra(snap,path,1000, 12.5, redmin=redmin, redmax=redmax)
+    halo = QSONrSpectra(snap,path,5000, 12.5, redmin=redmin, redmax=redmax)
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("C",2,1334, force_recompute=False)
     halo.get_density("C",2)
