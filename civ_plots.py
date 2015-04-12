@@ -118,7 +118,7 @@ class AggCIVPlot(object):
 
     def get_redshift_weights(self):
         """Get the redshift weightings for each snapshot"""
-        reds = [qq.redshift for qq in self.snaps]
+        reds = [qq.red for qq in self.snaps]
         #Compute the width of redshift bins
         redbins = [0.,]+ [(reds[i]+reds[i+1])/2. for i in xrange(np.size(reds)-1)]+[5.,]
         #Compute the weights within each redshift bin
