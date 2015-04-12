@@ -60,6 +60,35 @@ class CIVPlot(ps.PlottingSpectra):
         offsets *= self.atime/self.hubble
         return offsets
 
+    def get_flux_vel_offset(self, elem="C", ion=4, line=1548):
+        """
+        Get the velocity offset between the flux in the host object and the flux in the nearby pair
+        """
+        midpoint = self.NumLos/2
+        tau = self.get_tau(elem, ion, line)
+        offsets = []
+        for (t1, t2) in zip(tau[0:midpoint, :], tau[midpoint:,:]):
+            #First rotate lines so that the DLA is in the center.
+            maxx = np.where(t1 == np.max(t1))[0][0]
+            rtau1 = np.roll(t1, maxx)
+            rtau2 = np.roll(t2, maxx)
+            v1 = self._get_flux_weigh_vel(rtau1)
+            v2 = self._get_flux_weigh_vel(rtau2)
+            vdiff = v2 - v1
+            if vdiff > self.nbins/2:
+                vdiff = (vdiff-self.nbins/2)
+            elif vdiff < - self.nbins/2:
+                vdiff = (vdiff+self.nbins/2)
+            offsets.append(vdiff*self.dvbin)
+        vel_offsets = np.array(offsets)
+        return vel_offsets
+
+    def _get_flux_weigh_vel(self, tau):
+        """Compute the flux weighted velocity of a sightline"""
+        vel = np.arange(self.nbins)
+        mvel = np.sum(vel*tau)/np.sum(tau)
+        return mvel
+
 class AggCIVPlot(object):
     """Class to compute various statistics specific to absorbers around something else, like DLAs or quasars.
        Aggregates over a varied redshift range.
@@ -81,10 +110,10 @@ class AggCIVPlot(object):
         self.nbins = self.snaps[0].nbins
         self.dvbin = self.snaps[0].dvbin
 
-    def get_tau(self, elem, ion, line):
-        """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
-        taus = [qq.get_tau(elem, ion, line) for qq in self.snaps]
-        return self._get_aggregate(taus)
+    def equivalent_width(self, elem, ion, line):
+        """Aggregated equivalent width"""
+        eqw = [qq.get_equivalent_width(elem, ion, line) for qq in self.snaps]
+        return self._get_aggregate(eqw)
 
     def _get_aggregate(self, unaggregated):
         """Get an aggregated quantity from a quantity passed as a list for the different snapshots
@@ -93,28 +122,20 @@ class AggCIVPlot(object):
         weights = self.get_redshift_weights()*np.shape(agg)[0]
         total = 0
         for jj in xrange(len(unaggregated)-1):
-            agg[total:total+int(weights[jj]),:] = unaggregated[jj][total:total+int(weights[jj]),:]
+            agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
             total+=int(weights[jj])
-        agg[total:,:]= unaggregated[-1][total:,:]
+        agg[total:]= unaggregated[-1][total:]
         return agg
 
     def get_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
-        cd = [qq.get_col_density(elem, ion) for qq in self.snaps]
+        cd = [np.sum(qq.get_col_density(elem, ion),axis=1) for qq in self.snaps]
         return self._get_aggregate(cd)
 
     def get_offsets(self):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
         off = [qq.get_offsets for qq in self.snaps]
-        agg = np.empty_like(off[0])
-        #Can't just use _get_aggregate because different dimensionality
-        weights = self.get_redshift_weights()*np.shape(off)[0]
-        total = 0
-        for jj in xrange(len(off)-1):
-            agg[total:total+int(weights[jj])] = off[jj][total:total+int(weights[jj])]
-            total+=int(weights[jj])
-        agg[total:]= off[-1][total:]
-        return agg
+        return self._get_aggregate(off)
 
     def get_redshift_weights(self):
         """Get the redshift weightings for each snapshot"""
@@ -125,7 +146,7 @@ class AggCIVPlot(object):
         weights = np.array([np.size(np.where(np.logical_and(self.datareds > redbins[i], self.datareds < redbins[i+1]))) for i in xrange(np.size(reds))])/1./np.size(self.datareds)
         return weights
 
-    def _plot_radial(self, plot_arr, color, ls, ls2, radial_bins, label=None,mean=True,line=True):
+    def _plot_radial(self, plot_arr, color, ls, _, radial_bins, label=None,mean=True,line=True):
         """Helper function plotting a derived something as a function of radius"""
         if radial_bins == None:
             radial_bins = self.def_radial_bins
@@ -161,14 +182,14 @@ class AggCIVPlot(object):
         if elem2 is None:
             elem2 = elem
         midpoint = self.NumLos/2
-        totC = np.sum(self.get_col_density(elem2,ion2),axis=1)[midpoint:]
-        CIV = np.sum(self.get_col_density(elem,ion),axis=1)[midpoint:]
+        totC = self.get_col_density(elem2,ion2)[midpoint:]
+        CIV = self.get_col_density(elem,ion)[midpoint:]
         return self._plot_radial(CIV/(totC+1), color, ls, ls2, radial_bins, label=label,mean=True)
 
     def plot_colden(self, color=None, ls="-",ls2="--", elem="C", ion=4, radial_bins = None, label=None):
         """Column density plot"""
         midpoint = self.NumLos/2
-        CIV = np.sum(self.get_col_density(elem,ion),axis=1)[midpoint:]
+        CIV = self.get_col_density(elem,ion)[midpoint:]
         return self._plot_radial(CIV, color, ls, ls2, radial_bins, label=label,mean=False)
 
     def plot_covering_fraction(self, eq_thresh = 0.2, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = None, label=None):
@@ -190,7 +211,7 @@ class AggCIVPlot(object):
         """
         if color == None:
             color=self.color
-        cdensity = np.sum(self.get_col_density(elem, ion), axis=1)
+        cdensity = self.get_col_density(elem, ion)
         midpoint = self.NumLos/2
         covering = np.zeros_like(cdensity[midpoint:])
         covering[np.where(cdensity[midpoint:] > cd_thresh)] = 1
@@ -231,50 +252,15 @@ class AggCIVPlot(object):
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
         if color == None:
-            color=self.color
-        midpoint = self.NumLos/2
-        tau = self.get_tau(elem, ion, line)
+            color = self.color
+        vel_offsets = [qq.get_flux_vel_offset(elem, ion, line) for qq in self.snaps]
+        vel_offset = self._get_aggregate(vel_offsets)
         eq_width = self.equivalent_width(elem, ion, line)
+        midpoint = self.NumLos/2
         ind = np.where(eq_width[midpoint:] > eq_thresh)
-        offsets = []
-        for (t1, t2) in zip(tau[0:midpoint, :][ind], tau[midpoint:,:][ind]):
-            #First rotate lines so that the DLA is in the center.
-            maxx = np.where(t1 == np.max(t1))[0][0]
-            rtau1 = np.roll(t1, maxx)
-            rtau2 = np.roll(t2, maxx)
-            v1 = self._get_flux_weigh_vel(rtau1)
-            v2 = self._get_flux_weigh_vel(rtau2)
-            vdiff = v2 - v1
-            if vdiff > self.nbins/2:
-                vdiff = (vdiff-self.nbins/2)
-            elif vdiff < - self.nbins/2:
-                vdiff = (vdiff+self.nbins/2)
-            offsets.append(vdiff*self.dvbin)
-        vel_offsets = np.array(offsets)
-        offsets = self.get_offsets()[ind]
         lbins = np.arange(0, 300, 20)
-        (hist, _) = np.histogram(np.abs(vel_offsets),lbins)
+        (hist, _) = np.histogram(np.abs(vel_offset[ind]),lbins)
         norm = np.sum(hist)
         plt.bar(lbins[:-1], hist*12./norm, width=20, color=color, label=self.label, alpha=0.4)
         return (lbins, hist)
-
-    def _get_flux_weigh_vel(self, tau):
-        """Compute the flux weighted velocity of a sightline"""
-        vel = np.arange(self.nbins)
-        mvel = np.sum(vel*tau)/np.sum(tau)
-        return mvel
-
-    def equivalent_width(self, elem, ion, line):
-        """Calculate the equivalent width of a line in Angstroms"""
-        tau = self.get_tau(elem, ion, line)
-        #1 bin in wavelength: δλ =  λ . v / c
-        #λ here is the rest wavelength of the line.
-        #speed of light in km /s
-        light = 2.99e5
-        #lambda in Angstroms, dvbin in km/s,
-        #so dl is in Angstrom
-        dl = self.dvbin / light * line
-        eq_width = np.trapz(-np.expm1(-tau),dx=dl, axis=1)
-        #Don't need to divide by 1+z as lambda_X is already rest wavelength
-        return eq_width
 

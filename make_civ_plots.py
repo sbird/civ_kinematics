@@ -274,10 +274,12 @@ C_ionic_eq_width("ion",aahalos[-2])
 #         reds.append(tmp)
 #     do_civ_plots("redshift_"+str(nn),reds)
 #
-if True:
+def print_pretty_spectra(snapnum, simname):
+    """Print pretty versions of spectra from a simulation snapshot"""
     rands = np.random.randint(0,1000,20)
-    offset = aahalos[-2].get_offsets()[rands]
-    np.savetxt("tau_Rperp_table.txt", np.sort(np.vstack((np.arange(0,1000), aahalos[-2].get_offsets())).T,0))
+    halo = ps.CIVPlot(snapnum, simname, savefile="nr_dla_spectra.hdf5", spec_res = 50.)
+    offsets = halo.get_offsets()[rands]
+    np.savetxt("tau_Rperp_table.txt", np.sort(np.vstack((np.arange(0,1000), halo.get_offsets())).T,0))
     for nn in rands:
         gs = gridspec.GridSpec(9,2)
         axes = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
@@ -287,15 +289,16 @@ if True:
         matplotlib.rc('axes', labelsize=8)
         matplotlib.rc('font', size=6)
         matplotlib.rc('lines', linewidth=1.5)
-        plot_den(aahalos[-2], axes, nn+1000, color="red")
-        plot_den(aahalos[-2], axes, nn)
-        np.savetxt(str(nn)+"_tau_DLA.txt",aahalos[-2].get_tau("C",4,1548,nn))
-        np.savetxt(str(nn)+"_tau_CGM.txt",aahalos[-2].get_tau("C",4,1548,nn+1000))
-        offsets = aahalos[-2].get_offsets()
+        plot_den(halo, axes, nn+1000, color="red")
+        plot_den(halo, axes, nn)
+        np.savetxt(str(nn)+"_tau_DLA.txt",halo.get_tau("C",4,1548,nn))
+        np.savetxt(str(nn)+"_tau_CGM.txt",halo.get_tau("C",4,1548,nn+1000))
         axes[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
         odir = path.join(outdir, "spectra")
         save_figure(path.join(odir,str(nn)+"_cosmo"+"_CIV_spec"))
         plt.clf()
         matplotlib.rc_file_defaults()
 
+
+# print_pretty_spectra(5, myname.get_name(7, box=25))
 
