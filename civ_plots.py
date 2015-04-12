@@ -103,6 +103,7 @@ class AggCIVPlot(object):
         self.ls=ls
         #Distribution of redshifts in the data
         self.datareds = np.loadtxt(redfile)[:,1]
+        nums = np.sort(nums)
         self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res) for n in nums]
         #Set the total number of sightlines as the number from the first snapshot
         #(ideally all snapshots have the same number), and all snapshots must have the same bin width
@@ -119,7 +120,9 @@ class AggCIVPlot(object):
         """Get an aggregated quantity from a quantity passed as a list for the different snapshots
         according to the correct (observed) redshift distribution"""
         agg = np.empty_like(unaggregated[0])
-        weights = self.get_redshift_weights()*np.shape(agg)[0]
+        weights = self.get_redshift_weights()
+        assert np.abs(np.sum(weights)-1.) < 1e-4
+        weights *=np.shape(agg)[0]
         total = 0
         for jj in xrange(len(unaggregated)-1):
             agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
@@ -141,9 +144,9 @@ class AggCIVPlot(object):
         """Get the redshift weightings for each snapshot"""
         reds = [qq.red for qq in self.snaps]
         #Compute the width of redshift bins
-        redbins = [0.,]+ [(reds[i]+reds[i+1])/2. for i in xrange(np.size(reds)-1)]+[5.,]
+        redbins = [5.,]+ [(reds[i]+reds[i+1])/2. for i in xrange(np.size(reds)-1)]+[0.,]
         #Compute the weights within each redshift bin
-        weights = np.array([np.size(np.where(np.logical_and(self.datareds > redbins[i], self.datareds < redbins[i+1]))) for i in xrange(np.size(reds))])/1./np.size(self.datareds)
+        weights = np.array([np.size(np.where(np.logical_and(self.datareds < redbins[i], self.datareds > redbins[i+1]))) for i in xrange(np.size(reds))])/1./np.size(self.datareds)
         return weights
 
     def _plot_radial(self, plot_arr, color, ls, _, radial_bins, label=None,mean=True,line=True):
