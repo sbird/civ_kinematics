@@ -232,6 +232,14 @@ for i in (7,9):
 
 do_qso_plots("qso", qsos)
 
+qsos = []
+base = myname.get_name(7, box=25)
+qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
+for k in (3,4,5):
+    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels[7]+" "+str(k), spec_res = 10.))
+
+do_qso_plots("small_qso", qsos)
+
 print "Done QSO"
 aahalos = []
 
