@@ -130,8 +130,16 @@ class AggCIVPlot(object):
         agg = np.empty_like(unaggregated[0])
         weights = self.get_redshift_weights()
         assert np.abs(np.sum(weights)-1.) < 1e-4
-        weights *=np.shape(agg)[0]
+        midpoint = np.shape(agg)[0]/2
+        weights *=midpoint
+        #Do first and second half separately,
+        #as one is through object, other is CGM.
         total = 0
+        for jj in xrange(len(unaggregated)-1):
+            agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
+            total+=int(weights[jj])
+        agg[total:midpoint]= unaggregated[-1][total:midpoint]
+        total = midpoint
         for jj in xrange(len(unaggregated)-1):
             agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
             total+=int(weights[jj])
