@@ -181,7 +181,7 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     """Plot covering fraction for QSO pairs"""
     CGM_c = np.loadtxt("QPQ7eqW.dat")
     for ahalo in ahalos:
-        ahalo.obs_bins = np.concatenate([CGM_c[:,0], [1000,]])
+        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
         ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"EW("+ionname+" "+str(line)+")")
@@ -201,7 +201,7 @@ def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
     """Plot covering fraction for QSOs"""
     CGM_c = np.loadtxt("QPQ7fc.dat")
     for ahalo in ahalos:
-        ahalo.obs_bins = np.concatenate([CGM_c[:,0], [1000,]])
+        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
         ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
     plt.xlabel("r perp (kpc)")
     plt.ylabel(r"$F(W_{"+str(line)+r"} > 0.2 \AA)$")
@@ -229,7 +229,6 @@ qsos = []
 for i in (7,9):
     base = myname.get_name(i, box=25)
     qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
-    qsos[-1].color=colors[i]
 
 do_qso_plots("qso", qsos)
 
