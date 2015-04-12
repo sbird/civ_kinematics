@@ -118,9 +118,9 @@ def CIV_vel_offset(name, ahalos):
 
 def plot_r_offsets(ahalo):
     """Plot the positions of the sightlines relative to DLAs"""
-    offsets = ahalo.get_offsets()
+    r_offsets = ahalo.get_offsets()
     rbins = [7.4,25,50,75,100,125,150,175,200,225,270]
-    plt.hist(offsets,rbins, label=ahalo.label)
+    plt.hist(r_offsets,rbins, label=ahalo.label)
     plt.legend()
     save_figure(path.join(outdir,"CIV_r_offset"))
     plt.clf()
@@ -153,10 +153,10 @@ def C_ionic_eq_width(name, ahalo):
 #Column density plots
 def rel_c_colden(ahalo):
     """Column density for different carbon ions"""
-    (center, mean_plot_arr2) = ahalo.plot_colden_ratio(color="grey",elem="C",ion=4,ion2=-1, label="CIV")
-    (center, mean_plot_arr3) = ahalo.plot_colden_ratio(color="pink",elem="C",ion=2, ion2=-1, label="CII")
-    (center, mean_plot_arr4) = ahalo.plot_colden_ratio(color="green",elem="C",ion=3, ion2=-1, label="CIII")
-    (center, mean_plot_arr5) = ahalo.plot_colden_ratio(color="blue",elem="C",ion=5, ion2=-1, label="CV")
+    ahalo.plot_colden_ratio(color="grey",elem="C",ion=4,ion2=-1, label="CIV")
+    ahalo.plot_colden_ratio(color="pink",elem="C",ion=2, ion2=-1, label="CII")
+    ahalo.plot_colden_ratio(color="green",elem="C",ion=3, ion2=-1, label="CIII")
+    ahalo.plot_colden_ratio(color="blue",elem="C",ion=5, ion2=-1, label="CV")
     #(center, mean_plot_arr6) = ahalo.plot_colden_ratio(color="yellow",elem="C",ion=6, ion2=-1, label="CVI")
     #(center, mean_plot_arr7) = ahalo.plot_colden_ratio(color="red",elem="C",ion=7, ion2=-1, label="CVII")
     #plt.plot(center, mean_plot_arr2+mean_plot_arr3+mean_plot_arr4+mean_plot_arr5+mean_plot_arr6+mean_plot_arr7, color="black")
@@ -227,14 +227,14 @@ def do_qso_plots(name, ahalos):
 
 qsos = []
 for i in (4,7,9):
-    name = myname.get_name(i, box=25)
-    qsos.append(ps.AggCIVPlot((3,4,5), name, savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
+    base = myname.get_name(i, box=25)
+    qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
     qsos[-1].color=colors[i]
 
 do_qso_plots("qso", qsos)
 
 print "Done QSO"
-ahalos = []
+aahalos = []
 
 #Plot some properties of the small box only
 #name = myname.get_name(7, box=7.5)
@@ -244,22 +244,20 @@ ahalos = []
 
 #ahalos = [ahalo,]
 #Add Illustris
-illhalo = ps.AggCIVPlot(68, path.expanduser("~/data/Illustris/"), savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
-illhalo.color = "pink"
-ahalos.append(illhalo)
+illhalo = ps.AggCIVPlot(68, path.expanduser("~/data/Illustris/"),  color="brown", redfile = "QSORperpred.txt",savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
+aahalos.append(illhalo)
 
 for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
-    name = myname.get_name(ss, box=25)
-    ahalo = ps.AggCIVPlot(5, name, savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
-    ahalo.color=colors[ss]
-    ahalos.append(ahalo)
+    base = myname.get_name(ss, box=25)
+    halo = ps.AggCIVPlot(5, base, color=colors[ss], redfile = "QSORperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
+    aahalos.append(halo)
 
-do_civ_plots("feed",ahalos)
+do_civ_plots("feed",aahalos)
 
-plot_r_offsets(ahalos[-2])
+plot_r_offsets(aahalos[-2])
 
-C_ionic_coverfrac("ion",ahalos[-2])
-C_ionic_eq_width("ion",ahalos[-2])
+C_ionic_coverfrac("ion",aahalos[-2])
+C_ionic_eq_width("ion",aahalos[-2])
 
 #rel_c_colden(ahalo)
 #hc_colden(ahalos[-2])
@@ -278,23 +276,23 @@ C_ionic_eq_width("ion",ahalos[-2])
 #
 if True:
     rands = np.random.randint(0,1000,20)
-    offset = ahalos[-2].get_offsets()[rands]
-    np.savetxt("tau_Rperp_table.txt", np.sort(np.vstack((np.arange(0,1000), ahalos[-2].get_offsets())).T,0))
+    offset = aahalos[-2].get_offsets()[rands]
+    np.savetxt("tau_Rperp_table.txt", np.sort(np.vstack((np.arange(0,1000), aahalos[-2].get_offsets())).T,0))
     for nn in rands:
         gs = gridspec.GridSpec(9,2)
-        ax = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
+        axes = (plt.subplot(gs[0:4,0]), plt.subplot(gs[5:,0]), plt.subplot(gs[4,0]))
         #Adjust the default plot parameters, which do not scale well in a gridspec.
         matplotlib.rc('xtick', labelsize=8)
         matplotlib.rc('ytick', labelsize=8)
         matplotlib.rc('axes', labelsize=8)
         matplotlib.rc('font', size=6)
         matplotlib.rc('lines', linewidth=1.5)
-        plot_den(ahalos[-2], ax, nn+1000, color="red")
-        plot_den(ahalos[-2], ax, nn)
-        np.savetxt(str(nn)+"_tau_DLA.txt",ahalos[-2].get_tau("C",4,1548,nn))
-        np.savetxt(str(nn)+"_tau_CGM.txt",ahalos[-2].get_tau("C",4,1548,nn+1000))
-        offsets = ahalos[-2].get_offsets()
-        ax[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
+        plot_den(aahalos[-2], axes, nn+1000, color="red")
+        plot_den(aahalos[-2], axes, nn)
+        np.savetxt(str(nn)+"_tau_DLA.txt",aahalos[-2].get_tau("C",4,1548,nn))
+        np.savetxt(str(nn)+"_tau_CGM.txt",aahalos[-2].get_tau("C",4,1548,nn+1000))
+        offsets = aahalos[-2].get_offsets()
+        axes[0].text(-500, 0.2,"offset (prop kpc): "+str(offsets[nn]*0.33333/0.7))
         odir = path.join(outdir, "spectra")
         save_figure(path.join(odir,str(nn)+"_cosmo"+"_CIV_spec"))
         plt.clf()
