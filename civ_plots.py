@@ -112,7 +112,7 @@ class AggCIVPlot(object):
 
     def equivalent_width(self, elem, ion, line):
         """Aggregated equivalent width"""
-        eqw = [qq.get_equivalent_width(elem, ion, line) for qq in self.snaps]
+        eqw = [qq.equivalent_width(elem, ion, line) for qq in self.snaps]
         return self._get_aggregate(eqw)
 
     def _get_aggregate(self, unaggregated):
