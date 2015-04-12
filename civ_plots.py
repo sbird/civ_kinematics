@@ -93,8 +93,8 @@ class AggCIVPlot(object):
         weights = self.get_redshift_weights()*np.shape(agg)[0]
         total = 0
         for jj in xrange(len(unaggregated)-1):
-            agg[total:total+int(weights),:] = unaggregated[jj][total:total+int(weights),:]
-            total+=int(weights)
+            agg[total:total+int(weights[jj]),:] = unaggregated[jj][total:total+int(weights[jj]),:]
+            total+=int(weights[jj])
         agg[total:,:]= unaggregated[-1][total:,:]
         return agg
 
@@ -111,8 +111,8 @@ class AggCIVPlot(object):
         weights = self.get_redshift_weights()*np.shape(off)[0]
         total = 0
         for jj in xrange(len(off)-1):
-            agg[total:total+int(weights)] = off[jj][total:total+int(weights)]
-            total+=int(weights)
+            agg[total:total+int(weights[jj])] = off[jj][total:total+int(weights[jj])]
+            total+=int(weights[jj])
         agg[total:]= off[-1][total:]
         return agg
 
