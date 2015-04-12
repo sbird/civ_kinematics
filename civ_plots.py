@@ -137,7 +137,7 @@ class AggCIVPlot(object):
 
     def get_offsets(self):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
-        off = [qq.get_offsets for qq in self.snaps]
+        off = [qq.get_offsets() for qq in self.snaps]
         return self._get_aggregate(off)
 
     def get_redshift_weights(self):
