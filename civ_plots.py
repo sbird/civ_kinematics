@@ -86,7 +86,10 @@ class CIVPlot(ps.PlottingSpectra):
     def _get_flux_weigh_vel(self, tau):
         """Compute the flux weighted velocity of a sightline"""
         vel = np.arange(self.nbins)
-        mvel = np.sum(vel*tau)/np.sum(tau)
+        try:
+            mvel = np.sum(vel*tau)/np.sum(tau)
+        except FloatingPointError:
+            mvel = 0.
         return mvel
 
 class AggCIVPlot(object):
