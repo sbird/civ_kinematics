@@ -104,6 +104,8 @@ class AggCIVPlot(object):
         #Distribution of redshifts in the data
         self.datareds = np.loadtxt(redfile)[:,1]
         nums = np.sort(nums)
+        if len(nums) == 1:
+            nums = (nums,)
         self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res) for n in nums]
         #Set the total number of sightlines as the number from the first snapshot
         #(ideally all snapshots have the same number), and all snapshots must have the same bin width
