@@ -21,7 +21,10 @@ class QSONrSpectra(spectra.Spectra):
         self.redmax = redmax
         self.npart=f["Header"].attrs["NumPart_Total"]+2**32*f["Header"].attrs["NumPart_Total_HighWord"]
         f.close()
-        (_, self.sub_mass, cofm, self.sub_radii) = halocat.find_wanted_halos(num, base, min_mass)
+        (_, self.sub_mass, cofm, self.sub_radii) = halocat.find_wanted_halos(num, base, min_mass/1e10)
+        print np.size(self.sub_mass)," halos found"
+        if np.size(self.sub_mass) == 0:
+            raise ValueError
         self.sub_cofm = np.array(cofm, dtype=np.float64)
         self.NumLos = numlos
         #All through y axis
@@ -88,13 +91,16 @@ class QSONrSpectra(spectra.Spectra):
 
 def do_stuff(snap, path, redmin, redmax):
     """Make lines"""
-    halo = QSONrSpectra(snap,path,5000, 12.5, redmin=redmin, redmax=redmax)
-    halo.get_tau("C",4,1548, force_recompute=False)
-    halo.get_tau("C",2,1334, force_recompute=False)
-    halo.get_density("C",2)
-    halo.get_density("C",4)
-    halo.get_density("H",1)
-    halo.save_file()
+    try:
+        halo = QSONrSpectra(snap,path,5000, 10**12.5, redmin=redmin, redmax=redmax)
+        halo.get_tau("C",4,1548, force_recompute=False)
+        halo.get_tau("C",2,1334, force_recompute=False)
+        halo.get_density("C",2)
+        halo.get_density("C",4)
+        halo.get_density("H",1)
+        halo.save_file()
+    except ValueError:
+        print "No halos found, nothing done"
 
 if __name__ == "__main__":
     #For small boxes
