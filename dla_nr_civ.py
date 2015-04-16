@@ -38,6 +38,7 @@ class DLANrSpectra(spectra.Spectra):
             ax = axx - set([axis[numlos+i]])
             cofm[numlos+i, list(ax)] += rands[i]
         spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
+        self.age = {}
 
     def get_cofm(self, num = None):
         """Find a bunch more sightlines: do nothing in this case"""
@@ -83,6 +84,76 @@ class DLANrSpectra(spectra.Spectra):
         cofm[:,0]=rr*np.cos(phi)
         cofm[:,1]=rr*np.sin(phi)
         return cofm
+
+    def _age_single_file(self,fn, elem, ion):
+        """Get the density weighted interpolated temperature field for a single file"""
+        (pos, vel, age, temp, hh, amumass) = self._read_particle_data(fn, elem, ion,True)
+        if amumass == False:
+            return np.zeros([np.shape(self.cofm)[0],self.nbins],dtype=np.float32)
+        else:
+            ff = h5py.File(fn, "r")
+            data = ff["PartType0"]
+            hh2 = hsml.get_smooth_length(data)
+            pos2 = np.array(data["Coordinates"],dtype=np.float32)
+            ind = self.particles_near_lines(pos2, hh2,self.axis,self.cofm)
+            part_ids = np.array(data["ParticleIDs"])[ind]
+            tracer = ff["PartType3"]
+            #Last star time is {a, -a, a+1, a+2} depending on from a star/wind to a gas, or from a gas to a star/wind.
+            laststar = np.array(tracer["FluidQuantities"][:,8])
+            #Only interested in moving from star or wind to gas.
+            #Assume that something from a wind came out of a star reasonably soon before
+            t_ind = np.where(np.logical_and(laststar < 1))
+            laststar = laststar[t_ind]
+            #Associate each tracer particle with a gas particle
+            tracerparents = np.array(tracer["ParentID"])[t_ind]
+            ff.close()
+            #Now we have tracers we look through our gas cells to find
+            #attached tracers. If we don't find a tracer, set this gas particle to zero time.
+            #It was never in a star or wind.
+            for iid in xrange(np.size(part_ids)):
+                loc = np.where(tracerparents == part_ids[iid])
+                if np.size(loc) == 0:
+                    age[iid] = 0
+                else:
+                    age[iid] *= laststar[loc]
+            line = self.lines[("H",1)][1215]
+            stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
+            return stuff
+
+    def get_age(self, elem, ion):
+        """Get the column density weighted velocity in each pixel for a given species.
+        """
+        try:
+            self._really_load_array((elem, ion), self.age, "age")
+            return self.age[(elem, ion)]
+        except KeyError:
+            age =  self._get_mass_weight_quantity(self._age_single_file, elem, ion)
+            self.age[(elem, ion)] = age
+            return age
+
+    def save_file(self):
+        """
+        Saves spectra to a file, because they are slow to generate.
+        File is by default to be $snap_dir/snapdir_$snapnum/spectra.hdf5.
+        """
+        #We should make sure we have loaded all lazy-loaded things first.
+        self._load_all_multihash(self.tau, "tau")
+        self._load_all_multihash(self.colden, "colden")
+        try:
+            self._load_all_multihash(self.velocity, "velocity")
+            self._load_all_multihash(self.age, "age")
+        except IOError:
+            pass
+        try:
+            if path.exists(self.savefile):
+                shutil.move(self.savefile,self.savefile+".backup")
+            f=h5py.File(self.savefile,'w')
+        except IOError:
+            raise IOError("Could not open ",self.savefile," for writing")
+        #Temperature
+        grp_grid = f.create_group("age")
+        self._save_multihash(self.age, grp_grid)
+        self._save_file(f)
 
 def do_stuff(snap, path):
     """Make lines"""
