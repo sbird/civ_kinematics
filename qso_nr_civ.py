@@ -4,7 +4,8 @@
 import numpy as np
 import math
 import spectra
-import myname
+import sys
+#import myname
 import halocat
 import hdfsim
 
@@ -104,11 +105,11 @@ def do_stuff(snap, path, redmin, redmax):
 
 if __name__ == "__main__":
     #For small boxes
-    reds = {5:(1.,2.25), 4:(2.25, 2.75), 3:(2.75, 3.25)}
+    #reds = {5:(1.,2.25), 4:(2.25, 2.75), 3:(2.75, 3.25)}
     #For big box (with better spacing)
-    #reds = {68:(1.,2.1), 66:(2.1, 2.25), 65:(2.25, 2.4465), 63:(2.4465,2.785), 60:(2.785,5.)}
-    for ss in (7, 9):
-        simbase = myname.get_name(ss, box=25)
-        for (j,zz) in reds.iteritems():
-            do_stuff(j, simbase, zz[0], zz[1])
+    reds = {68:(1.,2.1), 66:(2.1, 2.25), 65:(2.25, 2.4465), 63:(2.4465,2.785), 60:(2.785,5.)}
+    base = "/n/ghernquist/Illustris/Runs/Illustris-1/"
+    j = int(sys.argv[1])
+    zz = reds[j]
+    do_stuff(j, base, zz[0], zz[1])
 
