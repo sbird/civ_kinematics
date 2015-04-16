@@ -225,18 +225,20 @@ def do_qso_plots(name, ahalos):
     qso_eq_width("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
 
-qsos = []
-for i in (7,9):
-    base = myname.get_name(i, box=25)
-    qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
+#qsos = []
+#for i in (7,9):
+#    base = myname.get_name(i, box=25)
+#    qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
+
+base = path.expanduser("~/data/Illustris/")
+illsnaps = (60,63,65,66,68)
+qsos.append(ps.AggCIVPlot(illsnaps, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color="brown", label="ILLUS", spec_res = 10.))
 
 do_qso_plots("qso", qsos)
 
 qsos = []
-base = myname.get_name(7, box=25)
-qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
-for k in (3,4,5):
-    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels[7]+" "+str(k), spec_res = 10.))
+for k in illsnaps:
+    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label="ILLUS"+" "+str(k), spec_res = 10.))
 
 do_qso_plots("small_qso", qsos)
 
