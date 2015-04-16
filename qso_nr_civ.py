@@ -34,7 +34,7 @@ class QSONrSpectra(spectra.Spectra):
         select = np.random.randint(0,np.size(self.sub_mass),numlos)
         #Select the spectra
         cofm = np.concatenate((self.sub_cofm[select], self.sub_cofm[select]))
-        axis = np.concatenate((axis[select], axis[select]))
+        axis = np.concatenate((axis, axis))
         #Add a small perturbation to the sightline cofm
         axx = set([0,1,2])
         rands = self.get_weighted_perp(numlos)
