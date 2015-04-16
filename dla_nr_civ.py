@@ -5,16 +5,25 @@ import numpy as np
 import math
 import spectra
 import myname
+import hdfsim
+import h5py
+import hsml
 
 class DLANrSpectra(spectra.Spectra):
     """Generate metal line spectra from simulation snapshot"""
-    def __init__(self,num, base, numlos, redshift, res = 1., cdir = None, savefile="nr_dla_spectra.hdf5", savedir=None, reload_file=True):
+    def __init__(self,num, base, numlos, redmin, redmax, res = 5., cdir = None, savefile="nr_dla_spectra.hdf5", savedir=None, reload_file=True):
         #Get a sample of DLAs from the savefile
         dlas = spectra.Spectra(num, base, None, None, res, cdir, savefile="grid_spectra_DLA.hdf5",savedir=savedir)
         dla_cofm = dlas.cofm
         dla_axis = dlas.axis
-        self.hubble = 0.7
-        self.atime = 1./(1+redshift)
+        self.redmin = redmin
+        self.redmax = redmax
+        f = hdfsim.get_file(num, base, 0)
+        self.OmegaM = f["Header"].attrs["Omega0"]
+        self.box = f["Header"].attrs["BoxSize"]
+        self.hubble = f["Header"].attrs["HubbleParam"]
+        self.atime = f["Header"].attrs["Time"]
+        f.close()
         self.NumLos = numlos
         #Sightlines at random positions
         #Re-seed for repeatability
@@ -53,9 +62,11 @@ class DLANrSpectra(spectra.Spectra):
     def get_weighted_perp(self, num):
         """Get a random perturbation with a radius weighted by the number of
            quasars in radial bins in the DLA-CGM survey."""
-        rperp = np.loadtxt("CGMofDLAs_Rperp.dat")[:,0]
-        rbins = np.min(rperp),25,50,75,100,125,150,175,200,225,250,275
-        (hists, rbins) = np.histogram(rperp, rbins)
+        rperp = np.loadtxt("DLARperpred.txt")
+        #Select quasars in the given redshift range
+        ind = np.where(np.logical_and(rperp[:,1] > self.redmin, rperp[:,1] < self.redmax))
+        rbins = [np.min(rperp),25,50,75,100,125,150,175,200,225,250,275]
+        (hists, rbins) = np.histogram(rperp[ind,0][0], rbins)
         conv = self.hubble/self.atime
         rbins *= conv
         phi = 2*math.pi*np.random.random_sample(num)
@@ -75,7 +86,8 @@ class DLANrSpectra(spectra.Spectra):
 
 def do_stuff(snap, path):
     """Make lines"""
-    halo = DLANrSpectra(snap,path,1000, 2)
+    reds = {5:(1.,2.25), 4:(2.25, 5.)}
+    halo = DLANrSpectra(snap,path,4000, reds[snap][0], reds[snap][1])
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("H",1,1215, force_recompute=False)
     halo.get_tau("C",-1,1548, force_recompute=False)
@@ -90,15 +102,11 @@ def do_stuff(snap, path):
     halo.save_file()
 
 if __name__ == "__main__":
-    simbase = myname.get_name(5, box=10)
-    do_stuff(5, simbase)
-    simbase = myname.get_name(7, box=7.5)
-    do_stuff(5, simbase)
-    for ss in (1, 3, 4, 5, 6, 7, 9):
-       simbase = myname.get_name(ss, box=25)
-       do_stuff(5, simbase)
-    for ss in (4,7):
+#     simbase = myname.get_name(5, box=10)
+#     do_stuff(5, simbase)
+#     simbase = myname.get_name(7, box=7.5)
+#     do_stuff(5, simbase)
+    for ss in (4, 7, 9):
         simbase = myname.get_name(ss, box=25)
-        do_stuff(3, simbase)
-        do_stuff(1, simbase)
-
+        do_stuff(5, simbase)
+        do_stuff(4, simbase)
