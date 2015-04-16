@@ -225,7 +225,7 @@ def do_qso_plots(name, ahalos):
     qso_eq_width("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
 
-#qsos = []
+qsos = []
 #for i in (7,9):
 #    base = myname.get_name(i, box=25)
 #    qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
@@ -236,7 +236,6 @@ qsos.append(ps.AggCIVPlot(illsnaps, base, redfile = "QSORperpred.txt", savefile=
 
 do_qso_plots("qso", qsos)
 
-qsos = []
 for k in illsnaps:
     qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label="ILLUS"+" "+str(k), spec_res = 10.))
 
