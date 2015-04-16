@@ -17,8 +17,8 @@ print "Plots at ",outdir
 #colors = {0:"pink", 1:"purple", 2:"cyan", 3:"green", 4:"gold", 5:"red", 7:"blue", 6:"grey", 8:"pink", 9:"orange", 'A':"grey", 'S':"red"}
 lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:"-", 8:"-",9:"-",'A':"--",  'S':"--",'VS':"-", 'I':"--"}
 #labels = {0:"ILLUS",1:"HVEL", 2:"HVNOAGN",3:"NOSN", 4:"WMNOAGN", 5:"MVEL",6:"METAL",7:"DEF", 8:"RICH",9:"FAST", 'A':"MOM", 'S':"SMALL"}
-labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",'S':"SMALL", 'VS':"VSMALL",6:"LOAD", 'I':"ILLUS"}
-colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",'S':"grey", 'VS':"brown",6:"green", 'I':"darkblue"}
+labels = {1:"HVEL", 2:"HVNOAGN", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",'S':"SMALL", 'VS':"VSMALL",6:"LOAD", 'I':"ILLUS"}
+colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",'S':"grey", 'VS':"brown",6:"green", 'I':"darkblue"}
 
 
 snaps = {1:4, 2:3.5, 3:3, 4:2.5, 5:2, 6:1.5, 7:1, 8:0.5, 9:0.3, 10:0, 901:6, 902:5, 903:4.5, 54:4.0, 57:3.5, 60:3.0, 64:2.5, 68:2.0}
@@ -81,7 +81,7 @@ def linear_cog_col(eqw, rwave, fosc):
     return 1.13e20 * eqw / (rwave**2 * fosc)
 
 if __name__ == "__main__":
-    sims = (4,7,9)
+    sims = (1,2,4,7,9)
     ahalos = {
            # 'VS':CIVPlottingSpectra(5, myname.get_name(7, box=7.5), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['VS']),
                     7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]),
