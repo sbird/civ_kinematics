@@ -96,13 +96,15 @@ class DLANrSpectra(spectra.Spectra):
             hh2 = hsml.get_smooth_length(data)
             pos2 = np.array(data["Coordinates"],dtype=np.float32)
             ind = self.particles_near_lines(pos2, hh2,self.axis,self.cofm)
-            part_ids = np.array(data["ParticleIDs"])[ind]
+            ind2 = self._filter_particles(age, None, None, None)
+            part_ids = np.array(data["ParticleIDs"])[ind][ind2]
+            assert np.size(part_ids) == np.size(age)
             tracer = ff["PartType3"]
             #Last star time is {a, -a, a+1, a+2} depending on from a star/wind to a gas, or from a gas to a star/wind.
             laststar = np.array(tracer["FluidQuantities"][:,8])
             #Only interested in moving from star or wind to gas.
             #Assume that something from a wind came out of a star reasonably soon before
-            t_ind = np.where(np.logical_and(laststar < 1))
+            t_ind = np.where(laststar < 1)
             laststar = laststar[t_ind]
             #Associate each tracer particle with a gas particle
             tracerparents = np.array(tracer["ParentID"])[t_ind]
@@ -115,7 +117,7 @@ class DLANrSpectra(spectra.Spectra):
                 if np.size(loc) == 0:
                     age[iid] = 0
                 else:
-                    age[iid] *= laststar[loc]
+                    age[iid] *= np.max(np.abs(laststar[loc]))
             line = self.lines[("H",1)][1215]
             stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
             return stuff
