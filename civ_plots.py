@@ -97,7 +97,7 @@ class AggCIVPlot(object):
        Aggregates over a varied redshift range.
        First half of sightlines assumed to go through objects.
     """
-    def __init__(self,nums, base, redfile, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.):
+    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.):
         #self.def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
         #As is observed
         self.def_radial_bins = np.array([5,100,200,275])
@@ -115,35 +115,53 @@ class AggCIVPlot(object):
         self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res) for n in nums]
         #Set the total number of sightlines as the number from the first snapshot
         #(ideally all snapshots have the same number), and all snapshots must have the same bin width
-        self.NumLos = self.snaps[0].NumLos
+        if numlos == None:
+            self.NumLos = self.snaps[0].NumLos
+        else:
+            self.NumLos = numlos
         self.nbins = self.snaps[0].nbins
         self.dvbin = self.snaps[0].dvbin
+        #Seed for repeatability
+        np.random.seed(52)
+        (self.nlines, self.agg_map) = self._get_sample_map(self.NumLos/2)
 
     def equivalent_width(self, elem, ion, line):
         """Aggregated equivalent width"""
         eqw = [qq.equivalent_width(elem, ion, line) for qq in self.snaps]
         return self._get_aggregate(eqw)
 
-    def _get_aggregate(self, unaggregated):
-        """Get an aggregated quantity from a quantity passed as a list for the different snapshots
-        according to the correct (observed) redshift distribution"""
-        agg = np.empty_like(unaggregated[0])
+    def _get_sample_map(self, npairs):
+        """Get a map between sightlines in the underlying snapshots and sightlines in the aggregated structure.
+        Does this by sampling (without replacement) the sightlines in the snapshots according to the observed redshift weights.
+        We are sampling *pairs*, so the number of sightlines will be double npairs. """
         weights = self.get_redshift_weights()
         assert np.abs(np.sum(weights)-1.) < 1e-4
-        midpoint = np.shape(agg)[0]/2
-        weights *=midpoint
-        #Do first and second half separately,
-        #as one is through object, other is CGM.
+
+        nlines = np.floor(weights * npairs).astype(np.int)
+        #Assign any extra to early bins
+        leftover = npairs - np.sum(nlines)
+        nlines[:leftover] += 1
+        assert np.sum(nlines) == npairs
+        #nlines now contains the number of sightlines we want from each snapshot
+        if np.size(nlines > 1):
+            print "Number of lines from each snapshot: ",nlines
+        #Check that we have enough data to get this sample
+        for i in xrange(np.size(self.snaps)):
+            assert nlines[i] <= self.snaps[i].NumLos/2
+        agg_map = [ np.random.choice(self.snaps[i].NumLos/2, size=nlines[i], replace=False) for i in xrange(np.size(nlines))]
+        return (nlines, agg_map)
+
+    def _get_aggregate(self, unaggregated, multiplier=2):
+        """Get an aggregated quantity from a quantity passed as a list for the different snapshots
+        according to the correct (observed) redshift distribution"""
+        agg = np.empty(np.sum(self.nlines)*multiplier,dtype=unaggregated[0].dtype)
         total = 0
-        for jj in xrange(len(unaggregated)-1):
-            agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
-            total+=int(weights[jj])
-        agg[total:midpoint]= unaggregated[-1][total:midpoint]
-        total = midpoint
-        for jj in xrange(len(unaggregated)-1):
-            agg[total:total+int(weights[jj])] = unaggregated[jj][total:total+int(weights[jj])]
-            total+=int(weights[jj])
-        agg[total:]= unaggregated[-1][total:]
+        for mm in xrange(multiplier):
+            assert total == np.sum(self.nlines)*mm
+            for jj in xrange(np.shape(unaggregated)[0]):
+                agg[total:total+np.size(self.agg_map[jj])]= unaggregated[jj][mm*self.snaps[jj].NumLos/2+self.agg_map[jj]]
+                total += np.size(self.agg_map[jj])
+        assert total == np.size(agg)
         return agg
 
     def get_col_density(self, elem, ion):
@@ -154,7 +172,7 @@ class AggCIVPlot(object):
     def get_offsets(self):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
         off = [qq.get_offsets() for qq in self.snaps]
-        return self._get_aggregate(off)
+        return self._get_aggregate(off,multiplier=1)
 
     def get_redshift_weights(self):
         """Get the redshift weightings for each snapshot"""
@@ -219,6 +237,7 @@ class AggCIVPlot(object):
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
+        assert np.shape(eq_width) == (self.NumLos,)
         covering = np.zeros_like(eq_width[midpoint:])
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
         #return self._plot_radial(covering, color, ls, ls2, self.obs_bins, label=label, line=False)
@@ -273,7 +292,7 @@ class AggCIVPlot(object):
         if color == None:
             color = self.color
         vel_offsets = [qq.get_flux_vel_offset(elem, ion, line) for qq in self.snaps]
-        vel_offset = self._get_aggregate(vel_offsets)
+        vel_offset = self._get_aggregate(vel_offsets, multiplier=1)
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ind = np.where(eq_width[midpoint:] > eq_thresh)
