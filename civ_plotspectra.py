@@ -55,6 +55,21 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         line_density = np.trapz(cddf, bins)
         return line_density
 
+    def plot_eq_width_vs_col_den(self, elem, ion, line):
+        """Plot the equivalent width vs the column density along the sightline for each spectrum."""
+        eqw = np.log10(self.equivalent_width(elem, ion, line))
+        colden = np.sum(self.get_col_density(elem, ion), axis=1)
+        edges = np.linspace(np.min(eqw), np.max(eqw), 15)
+        centers = (edges[1:]+edges[:-1])/2
+        median_colden = [np.median(colden[np.where(np.logical_and(eqw > lbin, eqw < hbin))]) for (lbin, hbin) in zip(edges[:-1], edges[1:])]
+        upquart = [np.percentile(colden[np.where(np.logical_and(eqw > lbin, eqw < hbin))],75) for (lbin, hbin) in zip(edges[:-1], edges[1:])]
+        lquart = [np.percentile(colden[np.where(np.logical_and(eqw > lbin, eqw < hbin))],25) for (lbin, hbin) in zip(edges[:-1], edges[1:])]
+        plt.semilogy(centers, median_colden,ls='--',color="brown",label=self.label)
+        plt.semilogy(centers, upquart,ls=':',color="brown")
+        plt.semilogy(centers, lquart,ls=':',color="brown")
+        plt.xlabel(r"W_{1548} $(\AA)$")
+        plt.ylabel(r"N$_\mathrm{CIV}$ (cm$^{2}$)")
+
     def assign_to_halo(self, zpos, halo_radii, halo_cofm):
         """
         Overload assigning positions to halos. As CIV absorbers are usually outside the virial radius,
@@ -114,7 +129,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
                 medians[ii] = np.median(self.sub_mass[halos[ind]])
                 uquart[ii] = np.percentile(self.sub_mass[halos[ind]],75)
                 lquart[ii] = np.percentile(self.sub_mass[halos[ind]],25)
-        plt.loglog(center, medians,color=color)
+        plt.loglog(center, medians,ls="-",color=color,label=self.label)
         plt.loglog(center, uquart,ls=":",color=color)
         plt.loglog(center, lquart, ls=":",color=color)
         plt.ylabel(r"Mass ($M_\odot$ h$^{-1}$)")
