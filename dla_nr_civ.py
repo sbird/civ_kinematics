@@ -8,6 +8,8 @@ import myname
 import hdfsim
 import h5py
 import hsml
+import os.path as path
+import shutil
 
 class DLANrSpectra(spectra.Spectra):
     """Generate metal line spectra from simulation snapshot"""
@@ -104,7 +106,8 @@ class DLANrSpectra(spectra.Spectra):
             laststar = np.array(tracer["FluidQuantities"][:,8])
             #Only interested in moving from star or wind to gas.
             #Assume that something from a wind came out of a star reasonably soon before
-            t_ind = np.where(laststar < 1)
+            #Zero value means was never in a star
+            t_ind = np.where(np.logical_and(laststar < 1, laststar != 0))
             laststar = laststar[t_ind]
             #Associate each tracer particle with a gas particle
             tracerparents = np.array(tracer["ParentID"])[t_ind]
@@ -112,12 +115,18 @@ class DLANrSpectra(spectra.Spectra):
             #Now we have tracers we look through our gas cells to find
             #attached tracers. If we don't find a tracer, set this gas particle to zero time.
             #It was never in a star or wind.
-            for iid in xrange(np.size(part_ids)):
-                loc = np.where(tracerparents == part_ids[iid])
-                if np.size(loc) == 0:
-                    age[iid] = 0
-                else:
-                    age[iid] *= np.max(np.abs(laststar[loc]))
+            #Find all particles that don't have attached tracers
+            withtracers = np.in1d(part_ids, tracerparents)
+            withouttracers = np.where(np.logical_not(withtracers))
+            withtracers = np.where(withtracers)
+            #Metal density of stuff that has been in a star should be much higher than stuff which hasn't been in a star
+            #Otherwise we have problems.
+            print "Metal density in a star ",np.mean(age[withouttracers]), " metal density not in star ",np.mean(age[withtracers])
+            age[withouttracers] = 0.
+            #It is not allowed to set individual elements of arrays selected in this complex way, so we must create a new array of
+            #the multiplication factor.
+            lastfactor = np.array([np.max(np.abs(laststar[np.where(tracerparents == pid)])) for pid in part_ids[withtracers]])
+            age[withtracers] = age[withtracers] * lastfactor
             line = self.lines[("H",1)][1215]
             stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
             return stuff
@@ -157,10 +166,10 @@ class DLANrSpectra(spectra.Spectra):
         self._save_multihash(self.age, grp_grid)
         self._save_file(f)
 
-def do_stuff(snap, path):
+def do_stuff(snap, base):
     """Make lines"""
     reds = {5:(1.,2.25), 4:(2.25, 5.)}
-    halo = DLANrSpectra(snap,path,4000, reds[snap][0], reds[snap][1])
+    halo = DLANrSpectra(snap,base,4000, reds[snap][0], reds[snap][1])
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("H",1,1215, force_recompute=False)
     halo.get_tau("C",-1,1548, force_recompute=False)
