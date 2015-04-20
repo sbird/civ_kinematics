@@ -8,6 +8,8 @@ import myname
 import hdfsim
 import h5py
 import hsml
+import os.path as path
+import shutil
 
 class DLANrSpectra(spectra.Spectra):
     """Generate metal line spectra from simulation snapshot"""
@@ -164,10 +166,10 @@ class DLANrSpectra(spectra.Spectra):
         self._save_multihash(self.age, grp_grid)
         self._save_file(f)
 
-def do_stuff(snap, path):
+def do_stuff(snap, base):
     """Make lines"""
     reds = {5:(1.,2.25), 4:(2.25, 5.)}
-    halo = DLANrSpectra(snap,path,4000, reds[snap][0], reds[snap][1])
+    halo = DLANrSpectra(snap,base,4000, reds[snap][0], reds[snap][1])
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("H",1,1215, force_recompute=False)
     halo.get_tau("C",-1,1548, force_recompute=False)
