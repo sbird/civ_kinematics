@@ -119,11 +119,9 @@ def CIV_vel_offset(name, ahalos):
 def plot_r_offsets(ahalo):
     """Plot the positions of the sightlines relative to DLAs"""
     r_offsets = ahalo.get_offsets()
-    rbins = [7.4,25,50,75,100,125,150,175,200,225,270]
-    plt.hist(r_offsets,rbins, label=ahalo.label)
-    plt.legend()
-    save_figure(path.join(outdir,"CIV_r_offset"))
-    plt.clf()
+    rbins = np.linspace(np.min(r_offsets), np.max(r_offsets), 40)
+    (hist, edges) = np.histogram(r_offsets,rbins)
+    plt.plot((edges[1:]+edges[:-1])/2, hist, ls='-', label=ahalo.label)
 
 def C_ionic_coverfrac(name, ahalo):
     """Plot covering fraction"""
@@ -232,7 +230,7 @@ qsos = []
 
 base = path.expanduser("~/data/Illustris/")
 illsnaps = (60,63,65,66,68)
-qsos.append(ps.AggCIVPlot(illsnaps, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color="brown", label="ILLUS", spec_res = 10.))
+qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color="brown", label="ILLUS", spec_res = 10.))
 
 do_qso_plots("qso", qsos)
 
@@ -240,6 +238,11 @@ for k in illsnaps:
     qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label="ILLUS"+" "+str(k), spec_res = 10.))
 
 do_qso_plots("small_qso", qsos)
+
+[plot_r_offsets(q) for q in qsos]
+plt.legend()
+save_figure(path.join(outdir,"QSO_illus_r_offset"))
+plt.clf()
 
 print "Done QSO"
 aahalos = []
@@ -257,12 +260,16 @@ aahalos.append(illhalo)
 
 for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
     base = myname.get_name(ss, box=25)
-    halo = ps.AggCIVPlot(5, base, color=colors[ss], redfile = "QSORperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
+    halo = ps.AggCIVPlot((4,5), base, numlos=7000, color=colors[ss], redfile = "DLARperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
     aahalos.append(halo)
 
 do_civ_plots("feed",aahalos)
 
 plot_r_offsets(aahalos[-2])
+plt.legend()
+save_figure(path.join(outdir,"CIV_r_offset"))
+plt.clf()
+
 
 C_ionic_coverfrac("ion",aahalos[-2])
 C_ionic_eq_width("ion",aahalos[-2])
