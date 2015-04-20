@@ -95,7 +95,7 @@ class QSONrSpectra(spectra.Spectra):
 def do_stuff(snap, path, redmin, redmax):
     """Make lines"""
     try:
-        halo = QSONrSpectra(snap,path,5000, 10**12.5, redmin=redmin, redmax=redmax)
+        halo = QSONrSpectra(snap,path,5000, 10**12.5, redmin=redmin, redmax=redmax, savedir="/n/home11/spb/data/Illustris/snapdir_"+str(snap).rjust(3,'0'))
         halo.get_tau("C",4,1548, force_recompute=False)
         halo.get_tau("C",2,1334, force_recompute=False)
         halo.get_density("C",2)
