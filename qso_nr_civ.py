@@ -78,13 +78,15 @@ class QSONrSpectra(spectra.Spectra):
         phi = 2*math.pi*np.random.random_sample(num)
         rr = np.empty_like(phi)
         total = 0
-        for ii in xrange(np.size(hists)):
+        for ii in xrange(np.size(hists)-1):
             #How many sightlines in this bin?
             #The proportion from the observed survey, but at least 1 and no more
             #than we have left in the bag
             this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1)), num - total))
             rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
             total+=this
+        this = num - total
+        rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-1]
         cofm = np.empty((num, 2), dtype=np.float64)
         cofm[:,0]=rr*np.cos(phi)
         cofm[:,1]=rr*np.sin(phi)
