@@ -71,6 +71,49 @@ def plot_eq_width(sim, snap, box):
     #plt.figure(2)
     ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim], ls=lss[sim])
 
+def calc_dodor_red(txtfile):
+    """Calculate the redshift distribution of the D'Odorico 2010 CIV measurement."""
+    zzz = np.loadtxt(txtfile)
+    #Compute median redshift
+    #median = np.sum(zzz[:,1]**2-zzz[:,0]**2)/np.sum(zzz[:,1]-zzz[:,0])/2
+    #Compute percentage weights
+    total = np.sum(zzz[:,1]-zzz[:,0])
+    zbins = [1.4, 2.25, 2.75, 3.25,5.]
+    percents = np.array([np.sum([weight(zrange, maxz, minz) for  zrange in zzz]) for (maxz, minz) in zip(zbins[1:], zbins[:-1])])/total
+    assert np.sum(percents) == 1.
+    return percents
+
+def weight(zrange, maxz, minz):
+    """Compute the amount of a given zrange between maxz and minz"""
+    return np.max([0, np.min([maxz, zrange[1]]) -  np.max([zrange[0], minz])])
+
+def get_snap_cddf(snap, base):
+    """Get the cddf from one snapshot"""
+    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
+    return ahalo.column_density_function("C", 4, minN=11.5,maxN=15.5, line=False, close=50.)
+
+def plot_cddf(sim, box):
+    """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
+    #Load weights
+    weights = calc_dodor_red("reddodorico.txt")
+    #Which snapshots to weight
+    if box == 25:
+        snaps = (5,4,3,2)
+    if box == 75:
+        snaps = (68,64,60,57)
+    base = myname.get_name(sim, box=box)
+    cddfs = [get_snap_cddf(snap, base) for snap in snaps]
+    #Idiom for unpacking a list
+    NHI = np.mean(zip(*cddfs)[0],axis=0)
+    f_Nsnaps = np.array(zip(*cddfs)[1])
+    f_N = np.sum([f_Nsnaps[i,:]*weights[i] for i in xrange(np.size(weights))],axis=0)
+    assert np.shape(NHI) == np.shape(f_N)
+    plt.loglog(NHI,f_N,color=colors[sim], label=labels[sim]+" "+str(box), ls=lss[sim])
+    ax=plt.gca()
+    ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
+    ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
+    plt.xlim(10**12, 10**15)
+
 def linear_cog_col(eqw, rwave, fosc):
     """Plot the column density expected from the equivalent width, assuming we are in the linear regime of the curve of growth.
     ie: 1-e^(-tau) ~ tau
@@ -110,9 +153,15 @@ if __name__ == "__main__":
     #do_halomass_plots(fosc)
     sims = (7,4,9) #1,2,
     #z=1.6-3.5 col den cddf
-
+    plot_cddf("I",75)
+    for s in sims:
+        plot_cddf(s, 25)
+    plot_dor_cddf()
+    plt.legend(loc="lower left", ncol=2)
+    save_figure(path.join(outdir,"civ_cddf"))
+    plt.clf()
     #z=2 eq. width cddf
-    plot_eq_width(7, 68, 75)
+    plot_eq_width('I', 68, 75)
     for s in sims:
         plot_eq_width(s, 5, 25)
     plt.xscale('log')
