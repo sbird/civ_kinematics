@@ -121,14 +121,20 @@ class DLANrSpectra(spectra.Spectra):
             withtracers = np.where(withtracers)
             #Metal density of stuff that has been in a star should be much higher than stuff which hasn't been in a star
             #Otherwise we have problems.
-            print "Metal density in a star ",np.mean(age[withouttracers]), " metal density not in star ",np.mean(age[withtracers])
-            age[withouttracers] = 0.
-            #It is not allowed to set individual elements of arrays selected in this complex way, so we must create a new array of
-            #the multiplication factor.
-            lastfactor = np.array([np.max(np.abs(laststar[np.where(tracerparents == pid)])) for pid in part_ids[withtracers]])
-            age[withtracers] = age[withtracers] * lastfactor
-            line = self.lines[("H",1)][1215]
-            stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
+            if np.any(withouttracers):
+                print "Metal density in a star ",np.mean(age[withouttracers])
+                #It is not allowed to set individual elements of arrays selected in this complex way, so we must create a new array of
+                #the multiplication factor.
+            if np.size(withtracers) > 0:
+                print "metal density not in star ",np.mean(age[withtracers])
+                lastfactor = np.array([np.max(np.abs(laststar[np.where(tracerparents == pid)])) for pid in part_ids[withtracers]])
+                age = age[withtracers] * lastfactor
+                pos = pos[withtracers]
+                vel = vel[withtracers]
+                temp = temp[withtracers]
+                hh = hh[withtracers]
+                line = self.lines[("H",1)][1215]
+                stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
             return stuff
 
     def get_age(self, elem, ion):
