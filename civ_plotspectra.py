@@ -67,7 +67,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.semilogy(centers, median_colden,ls='--',color="brown",label=self.label)
         plt.semilogy(centers, upquart,ls=':',color="brown")
         plt.semilogy(centers, lquart,ls=':',color="brown")
-        plt.xlabel(r"W_{1548} $(\AA)$")
+        plt.xlabel(r"$W_{1548} (\AA)$")
         plt.ylabel(r"N$_\mathrm{CIV}$ (cm$^{2}$)")
 
     def assign_to_halo(self, zpos, halo_radii, halo_cofm):
@@ -154,7 +154,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
                 medians[ii] = np.median(dists[ind])
                 uquart[ii] = np.percentile(dists[ind],75)
                 lquart[ii] = np.percentile(dists[ind],25)
-        plt.semilogx(center,medians, color=color)
+        plt.semilogx(center,medians, color=color,label=self.label)
         plt.semilogx(center, uquart,ls=":",color=color)
         plt.semilogx(center, lquart, ls=":",color=color)
         plt.ylabel(r"Distance (R$_\mathrm{vir}$)")

@@ -37,7 +37,7 @@ def plot_line_density(sim, box, base, sss):
     reds = []
     for snap in sss:
         try:
-            ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.)
+            ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
             reds.append(snaps[snap])
             lciv.append(ahalo.line_density_eq_w(0.6,"C",4,1548))
             lciv03.append(ahalo.line_density_eq_w(0.3,"C",4,1548))
@@ -55,8 +55,8 @@ def plot_line_density(sim, box, base, sss):
     plt.figure(4)
     plt.semilogy(reds, lciv03, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
 
-def plot_cddf(sim, snap, box):
-    """Plot the CIV column density function"""
+def plot_eq_width(sim, snap, box):
+    """Plot the CIV eq. width density function"""
     base = myname.get_name(sim, box=box)
     #plt.figure(1)
     if box==10:
@@ -66,10 +66,53 @@ def plot_cddf(sim, snap, box):
     if box == 75:
         sim = 'I'
         base = path.expanduser("~/data/Illustris")
-    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[sim]+" "+str(box))
+    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[sim]+" "+str(box),load_halo=False)
     #ahalo.plot_cddf("C", 4, minN=12, maxN=15., color=colors[sim], moment=False)
     #plt.figure(2)
     ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim], ls=lss[sim])
+
+def calc_dodor_red(txtfile):
+    """Calculate the redshift distribution of the D'Odorico 2010 CIV measurement."""
+    zzz = np.loadtxt(txtfile)
+    #Compute median redshift
+    #median = np.sum(zzz[:,1]**2-zzz[:,0]**2)/np.sum(zzz[:,1]-zzz[:,0])/2
+    #Compute percentage weights
+    total = np.sum(zzz[:,1]-zzz[:,0])
+    zbins = [1.4, 2.25, 2.75, 3.25,5.]
+    percents = np.array([np.sum([weight(zrange, maxz, minz) for  zrange in zzz]) for (maxz, minz) in zip(zbins[1:], zbins[:-1])])/total
+    assert np.sum(percents) == 1.
+    return percents
+
+def weight(zrange, maxz, minz):
+    """Compute the amount of a given zrange between maxz and minz"""
+    return np.max([0, np.min([maxz, zrange[1]]) -  np.max([zrange[0], minz])])
+
+def get_snap_cddf(snap, base):
+    """Get the cddf from one snapshot"""
+    ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
+    return ahalo.column_density_function("C", 4, minN=11.5,maxN=15.5, line=False, close=50.)
+
+def plot_cddf(sim, box):
+    """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
+    #Load weights
+    weights = calc_dodor_red("reddodorico.txt")
+    #Which snapshots to weight
+    if box == 25:
+        snaps = (5,4,3,2)
+    if box == 75:
+        snaps = (68,64,60,57)
+    base = myname.get_name(sim, box=box)
+    cddfs = [get_snap_cddf(snap, base) for snap in snaps]
+    #Idiom for unpacking a list
+    NHI = np.mean(zip(*cddfs)[0],axis=0)
+    f_Nsnaps = np.array(zip(*cddfs)[1])
+    f_N = np.sum([f_Nsnaps[i,:]*weights[i] for i in xrange(np.size(weights))],axis=0)
+    assert np.shape(NHI) == np.shape(f_N)
+    plt.loglog(NHI,f_N,color=colors[sim], label=labels[sim]+" "+str(box), ls=lss[sim])
+    ax=plt.gca()
+    ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
+    ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
+    plt.xlim(10**12, 10**15)
 
 def linear_cog_col(eqw, rwave, fosc):
     """Plot the column density expected from the equivalent width, assuming we are in the linear regime of the curve of growth.
@@ -80,14 +123,12 @@ def linear_cog_col(eqw, rwave, fosc):
     """
     return 1.13e20 * eqw / (rwave**2 * fosc)
 
-def do_halomass_plots():
+def do_halomass_plots(fosc):
     """Plot halo mass, distance to the halo and the relationship between eq. width and column density"""
     ahalos = {
-                    'I':CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']),
-                    4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]) }
+                    'I':CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75"),
+                    4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25") }
     ahalos['I'].plot_eq_width_vs_col_den("C",4,1548)
-    lines = line_data.LineData()
-    fosc = lines[("C", 4)][1548].fosc_X
     eqw = np.linspace(-3, 0.5,50)
     plt.semilogy(eqw, linear_cog_col(10**eqw, 1548, fosc), '-',color="black")
     plt.ylim(1e12,1e16)
@@ -107,29 +148,39 @@ def do_halomass_plots():
 
 if __name__ == "__main__":
     #Plot eq. width vs column density and halo mass
-    do_halomass_plots()
+    lines = line_data.LineData()
+    fosc = lines[("C", 4)][1548].fosc_X
+    #do_halomass_plots(fosc)
     sims = (7,4,9) #1,2,
-    #z=2 eq. width cddf
-    plot_cddf(7, 68, 75)
+    #z=1.6-3.5 col den cddf
+    plot_cddf("I",75)
     for s in sims:
-        plot_cddf(s, 5, 25)
+        plot_cddf(s, 25)
+    plot_dor_cddf()
+    plt.legend(loc="lower left", ncol=2)
+    save_figure(path.join(outdir,"civ_cddf"))
+    plt.clf()
+    #z=2 eq. width cddf
+    plot_eq_width('I', 68, 75)
+    for s in sims:
+        plot_eq_width(s, 5, 25)
     plt.xscale('log')
     plot_c12_eqw_data()
-    plt.legend(loc="upper right", ncol=2)
-    plt.xlim(10**(-1.5), 2.0)
-    ax1 = plt.gca()
-    ax2 = ax1.twiny()
-    plot_dor_cddf(scale=1.13e20/1548**2/fosc)
+    plt.legend(loc="lower left", ncol=2)
+    plt.xlim(1e-2, 4.0)
+    #ax1 = plt.gca()
+    #ax2 = ax1.twiny()
+    #plot_dor_cddf(scale=1.13e20/1548**2/fosc)
     plt.yscale('log')
-    plt.xscale('log')
-    plt.ylim(1e-2,400)
-    plt.xlim(linear_cog_col(10**(-1.5),1548, fosc), linear_cog_col(2.0,1548, fosc))
+    #plt.xscale('log')
+    plt.ylim(1e-2,100)
+    #plt.xlim(linear_cog_col(10**(-2.5),1548, fosc), linear_cog_col(4.0,1548, fosc))
     save_figure(path.join(outdir,"civ_eqw"))
     plt.clf()
     #z=3.5 eq. width cddf.
-    plot_cddf('I', 57, 75)
+    plot_eq_width('I', 57, 75)
     for s in sims:
-        plot_cddf(s, 2, 25)
+        plot_eq_width(s, 2, 25)
     #plt.figure(1)
     #plot_dor_cddf()
     #plt.legend(loc="upper right")
@@ -138,8 +189,10 @@ if __name__ == "__main__":
     #plt.figure(2)
     plot_c12_eqw_data_z35()
     plt.xscale('log')
-    plt.legend(loc="upper right", ncol=2)
+    plt.legend(loc="lower left", ncol=2)
     plt.yscale('log')
+    plt.ylim(1e-3,100)
+    plt.xlim(1e-2,4.)
     save_figure(path.join(outdir,"civ_eqw_z35"))
     plt.clf()
 
@@ -154,8 +207,8 @@ if __name__ == "__main__":
     plt.ylabel(r"$dN/dX \,(W_{1548} \geq 0.6 \AA$)")
     plt.xlabel("z")
     plt.xlim(2, 4)
-    plt.ylim(1e-2, 10)
-    plt.legend(loc="upper right", ncol=2)
+    plt.ylim(1e-3, 0.5)
+    plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_line_dens"))
     plt.clf()
     plt.figure(2)
@@ -165,8 +218,8 @@ if __name__ == "__main__":
     plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
     plt.xlabel("z")
     plt.xlim(2, 4)
-    plt.ylim(0.1, 100)
-    plt.legend(loc="upper right", ncol=2)
+    plt.ylim(0.1, 10)
+    plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_omega"))
     plt.clf()
     plt.figure(3)
@@ -174,8 +227,8 @@ if __name__ == "__main__":
     plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
     plt.xlabel("z")
     plt.xlim(2, 4)
-    plt.ylim(0.1, 100)
-    plt.legend(loc="upper right", ncol=2)
+    plt.ylim(0.1, 10)
+    plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_omega_low"))
     plt.clf()
     plt.figure(4)
@@ -183,7 +236,7 @@ if __name__ == "__main__":
     plt.ylabel(r"$dN/dX \,(W_{1548} \geq 0.3 \AA $)")
     plt.xlabel("z")
     plt.xlim(2, 4)
-    plt.ylim(1e-2, 10)
-    plt.legend(loc="upper right", ncol=2)
+    plt.ylim(1e-2, 1)
+    plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_line_dens_low"))
     plt.clf()

@@ -30,10 +30,10 @@ def plot_dor_cddf(scale=1, moment=False):
         [68,  13.38, -13.1459, 0.0527],
         [49,  13.68, -13.5882, 0.0620],
         [30,  13.98, -14.1013, 0.0793],
-        #[18,  14.28, -14.6231, 0.1024],
-        #[10,  14.58, -15.1784, 0.1373],
-        #[6,  14.88, -15.7002, 0.1773 ],
-    #[1,  15.18, -16.7784, 0.4343]
+        [18,  14.28, -14.6231, 0.1024],
+        [10,  14.58, -15.1784, 0.1373],
+        [6,  14.88, -15.7002, 0.1773 ],
+    [1,  15.18, -16.7784, 0.4343]
     ])
     lxer=-10**(civ_cddf[:,1]-0.15)+10**(civ_cddf[:,1])
     uxer=10**(civ_cddf[:,1]+0.15)-10**(civ_cddf[:,1])
@@ -47,7 +47,7 @@ def plot_dor_cddf(scale=1, moment=False):
     civ_cddf[:,2]+=np.log10(scale)
     lyer*=scale
     uyer*=scale
-    plt.errorbar(10**civ_cddf[:,1], 10**civ_cddf[:,2], marker='o',fmt='none', yerr = [lyer, uyer], xerr=[lxer, uxer], ecolor="grey")
+    plt.errorbar(10**civ_cddf[:,1], 10**civ_cddf[:,2], marker='o',fmt='none', yerr = [lyer, uyer], xerr=[lxer, uxer], ecolor="black")
 
 def plot_simcoe_data():
     """Plot the high redshift data from Simcoe 2011. 1104.4117 Integration limits are 13.4 - 15"""
