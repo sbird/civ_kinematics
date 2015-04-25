@@ -135,7 +135,9 @@ class DLANrSpectra(spectra.Spectra):
                 hh = hh[withtracers]
                 line = self.lines[("H",1)][1215]
                 stuff = self._do_interpolation_work(pos, vel, age, temp, hh, amumass, line, False)
-            return stuff
+                return stuff
+            else:
+                return np.zeros([np.shape(self.cofm)[0],self.nbins],dtype=np.float32)
 
     def get_age(self, elem, ion):
         """Get the column density weighted velocity in each pixel for a given species.
