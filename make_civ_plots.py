@@ -15,8 +15,9 @@ import numpy as np
 from save_figure import save_figure
 
 np.seterr(divide='raise',invalid='raise')
-labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"DEF", 9:"FAST", 4:"WARM",6:"LOAD"}
-colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green"}
+labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"ILLUS 25", 9:"FAST 25", 4:"WARM 25",6:"LOAD", 'I':"ILLUS 75"}
+colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green",'I':"brown"}
+lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:":", 8:"-",9:"-.",'A':"--",  'S':"--",'VS':"-", 'I':"-"}
 
 outdir = path.join(myname.base, "civ_plots/")
 
@@ -76,6 +77,7 @@ def generic_eq_width(ionname, elem, ion, line, name, ahalos):
         plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,100,200],[7,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
     if np.size(CGM_w[:,0]) == 5:
         plt.errorbar(CGM_w[:,0], CGM_w[:,1], yerr = CGM_w[:,2], xerr=[CGM_w[:,0]-[0,7,50,100,200],[7,50,100,200,275]-CGM_w[:,0]], fmt='o',ecolor="black")
+    plt.xlim(-5,300)
     plt.legend()
     save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
     plt.clf()
@@ -164,15 +166,15 @@ def rel_c_colden(ahalo):
 
 def hc_colden(ahalo):
     """Plot the column densities for different CIV ions"""
-    ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII")
-    ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII")
-    ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV")
-    ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV")
+    ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
+    ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
+    ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
+    ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
     #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
-    ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon")
+    ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
     plt.legend(loc='upper center', ncol=2)
     plt.yscale('log')
-    save_figure(path.join(outdir,"ion_C_colden"))
+    save_figure(path.join(outdir,ahalo.label+"ion_C_colden"))
     plt.clf()
 
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
@@ -224,18 +226,18 @@ def do_qso_plots(name, ahalos):
     qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
 
 qsos = []
-#for i in (7,9):
-#    base = myname.get_name(i, box=25)
-#    qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
+for i in (7,9):
+   base = myname.get_name(i, box=25)
+   qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
 
 base = path.expanduser("~/data/Illustris/")
 illsnaps = (60,63,65,66,68)
-qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color="brown", label="ILLUS", spec_res = 10.))
+qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False))
 
 do_qso_plots("qso", qsos)
 
 for k in illsnaps:
-    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label="ILLUS"+" "+str(k), spec_res = 10.))
+    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False))
 
 do_qso_plots("small_qso", qsos)
 
@@ -254,14 +256,14 @@ aahalos = []
 #ahalo.color = "brown"
 
 #ahalos = [ahalo,]
-#Add Illustris
-illhalo = ps.AggCIVPlot(68, path.expanduser("~/data/Illustris/"),  color="brown", redfile = "QSORperpred.txt",savefile="nr_dla_spectra.hdf5", label="ILLUSTRIS", spec_res = 50.)
-aahalos.append(illhalo)
-
-for ss in (4,7,9): #Removed 3 and 1 as they don't match DLA properties
+for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
     base = myname.get_name(ss, box=25)
-    halo = ps.AggCIVPlot((4,5), base, numlos=7000, color=colors[ss], redfile = "DLARperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.)
+    halo = ps.AggCIVPlot((4,5), base, numlos=14000, color=colors[ss], redfile = "DLARperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.,load_halo=False)
     aahalos.append(halo)
+
+#Add Illustris
+illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "QSORperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
+aahalos.append(illhalo)
 
 do_civ_plots("feed",aahalos)
 
@@ -271,11 +273,13 @@ save_figure(path.join(outdir,"CIV_r_offset"))
 plt.clf()
 
 
-C_ionic_coverfrac("ion",aahalos[-2])
-C_ionic_eq_width("ion",aahalos[-2])
+#C_ionic_coverfrac("ion",aahalos[-2])
+#C_ionic_eq_width("ion",aahalos[-2])
 
 #rel_c_colden(ahalo)
-#hc_colden(ahalos[-2])
+hc_colden(aahalos[0])
+hc_colden(aahalos[-2])
+hc_colden(aahalos[-1])
 
 #Do redshift evolution
 # for nn in (7,4):

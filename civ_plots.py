@@ -97,7 +97,7 @@ class AggCIVPlot(object):
        Aggregates over a varied redshift range.
        First half of sightlines assumed to go through objects.
     """
-    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.):
+    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True):
         #self.def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
         #As is observed
         self.def_radial_bins = np.array([5,100,200,275])
@@ -112,7 +112,7 @@ class AggCIVPlot(object):
         except TypeError:
             nums = (nums,)
         nums = np.sort(nums)
-        self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res) for n in nums]
+        self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res,load_halo=load_halo) for n in nums]
         #Set the total number of sightlines as the number from the first snapshot
         #(ideally all snapshots have the same number), and all snapshots must have the same bin width
         if numlos == None:
@@ -144,7 +144,7 @@ class AggCIVPlot(object):
         assert np.sum(nlines) == npairs
         #nlines now contains the number of sightlines we want from each snapshot
         if np.size(nlines > 1):
-            print "Number of lines from each snapshot: ",nlines
+            print "Number of lines from each snapshot: ",nlines*2
         #Check that we have enough data to get this sample
         for i in xrange(np.size(self.snaps)):
             assert nlines[i] <= self.snaps[i].NumLos/2
@@ -185,9 +185,8 @@ class AggCIVPlot(object):
 
     def _plot_radial(self, plot_arr, color, ls, _, radial_bins, label=None,mean=True,line=True):
         """Helper function plotting a derived something as a function of radius"""
-        if radial_bins == None:
+        if np.size(radial_bins) == 1 and radial_bins == None:
             radial_bins = self.def_radial_bins
-        center = np.array([(radial_bins[i]+radial_bins[i+1])/2. for i in range(0,np.size(radial_bins)-1)])
         mean_plot_arr = np.zeros(np.size(radial_bins)-1)
         offsets = self.get_offsets()
         (center, mean_plot_arr) = _get_means_binned(plot_arr, offsets, radial_bins, mean)
@@ -196,11 +195,15 @@ class AggCIVPlot(object):
         if line:
             plt.plot(center, mean_plot_arr, color=color, ls=ls, label=label)
         else:
-            yerr = _generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 5000)
-            plt.errorbar(center, mean_plot_arr, xerr=[radial_bins[:-1]-center,center-radial_bins[1:]],yerr=yerr,fmt='s',color=color, label=label)
+            yerr = _generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 1000)
+            #To count the number of labelled lines
+            ax = plt.gca()
+            h, l = ax.get_legend_handles_labels()
+            center = np.array([(radial_bins[i]*(7-len(l))+(3+len(l))*radial_bins[i+1])/10. for i in range(0,np.size(radial_bins)-1)])
+            plt.errorbar(center, mean_plot_arr, xerr=[center-radial_bins[1:],radial_bins[:-1]-center],yerr=yerr,fmt='s',color=color, label=label)
         return (center, mean_plot_arr)
 
-    def plot_eq_width_ratio(self, color=None, ls="-", ls2="--", elem="C", ion=4, line=1548, radial_bins = None):
+    def plot_eq_width_ratio(self, color=None, ls="-", elem="C", ion=4, line=1548, radial_bins = None):
         """
         Compute a histogram of the ratios of equivalent widths in pairs of spectra.
 
@@ -212,16 +215,16 @@ class AggCIVPlot(object):
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ratio = eq_width[midpoint:]/(eq_width[0:midpoint]+1e-5)
-        return self._plot_radial(ratio, color, ls, ls2, radial_bins,mean=False)
+        return self._plot_radial(ratio, color, ls, None, radial_bins,mean=False)
 
-    def plot_colden_ratio(self, color=None, ls="-",ls2="--", elem="C", ion=4, elem2=None, ion2=-1,radial_bins = None, label=None):
+    def plot_colden_ratio(self, color=None, ls="-", elem="C", ion=4, elem2=None, ion2=-1,radial_bins = None, label=None):
         """Column density plot; fraction of total in each ion"""
         if elem2 is None:
             elem2 = elem
         midpoint = self.NumLos/2
         totC = self.get_col_density(elem2,ion2)[midpoint:]
         CIV = self.get_col_density(elem,ion)[midpoint:]
-        return self._plot_radial(CIV/(totC+1), color, ls, ls2, radial_bins, label=label,mean=True)
+        return self._plot_radial(CIV/(totC+1), color, ls, None, radial_bins, label=label,mean=True)
 
     def plot_colden(self, color=None, ls="-",ls2="--", elem="C", ion=4, radial_bins = None, label=None):
         """Column density plot"""
@@ -281,8 +284,8 @@ class AggCIVPlot(object):
 #         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2  #self.nobs below
-        yerr = _generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,5000)
-        plt.errorbar([0,], np.mean(eq_width[:midpoint]), xerr=[[0,],[7.5,]],yerr=yerr, color=color, fmt='s')
+        yerr = _generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,1000)
+        plt.errorbar([0,], np.mean(eq_width[:midpoint]), yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins, label=label,line=False)
 
     def plot_flux_vel_offset(self, eq_thresh = 0.2, color=None, elem="C", ion=4, line=1548):
