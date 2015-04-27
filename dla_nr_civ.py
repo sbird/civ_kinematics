@@ -142,13 +142,14 @@ class DLANrSpectra(spectra.Spectra):
     def get_age(self, elem, ion):
         """Get the column density weighted velocity in each pixel for a given species.
         """
+        phys = self.dvbin/self.velfac*self.rscale
         try:
             self._really_load_array((elem, ion), self.age, "age")
-            return self.age[(elem, ion)]
+            return self.age[(elem, ion)]/phys
         except KeyError:
             age =  self._get_mass_weight_quantity(self._age_single_file, elem, ion)
             self.age[(elem, ion)] = age
-            return age
+            return age/phys
 
     def save_file(self):
         """
