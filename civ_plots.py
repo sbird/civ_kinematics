@@ -4,6 +4,7 @@
 import numpy as np
 import plot_spectra as ps
 import matplotlib.pyplot as plt
+import laststar
 
 def _get_means_binned(spectra, offsets, radial_bins,mean=True):
     """Get the means of some spectral quantity binned radially"""
@@ -47,7 +48,7 @@ def _generate_errors(spectra, offsets, radial_bins, nset, nsamples, error=0):
     uerr = np.percentile(sampled_mean, 50+34, axis=0) - meds
     return [lerr, uerr]
 
-class CIVPlot(ps.PlottingSpectra):
+class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     """Class to add some methods to PlottingSpectra which are useful for spectra around objects."""
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
@@ -198,7 +199,7 @@ class AggCIVPlot(object):
             yerr = _generate_errors(plot_arr, offsets, radial_bins, np.size(offsets), 1000)
             #To count the number of labelled lines
             ax = plt.gca()
-            h, l = ax.get_legend_handles_labels()
+            _, l = ax.get_legend_handles_labels()
             center = np.array([(radial_bins[i]*(7-len(l))+(3+len(l))*radial_bins[i+1])/10. for i in range(0,np.size(radial_bins)-1)])
             plt.errorbar(center, mean_plot_arr, xerr=[center-radial_bins[1:],radial_bins[:-1]-center],yerr=yerr,fmt='s',color=color, label=label)
         return (center, mean_plot_arr)
