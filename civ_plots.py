@@ -48,6 +48,7 @@ def _generate_errors(spectra, offsets, radial_bins, nset, nsamples, error=0):
     uerr = np.percentile(sampled_mean, 50+34, axis=0) - meds
     return [lerr, uerr]
 
+
 class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     """Class to add some methods to PlottingSpectra which are useful for spectra around objects."""
     def get_offsets(self):
@@ -84,6 +85,21 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         vel_offsets = np.array(offsets)
         return vel_offsets
 
+    def get_most_recent(self, elem="C", ion=4):
+        """Get for every sightline the most recent enrichment event"""
+        midpoint = self.NumLos/2
+        colden = self.get_col_density(elem, ion)
+        age = self.get_age(elem, ion)
+        ages = []
+        for (ag, cd) in zip(age[midpoint:, :], colden[midpoint:,:]):
+            #Find the most recent event over all regions with significant CIV.
+            #ind = np.where(cd > 1e12)
+            #if np.size(ind) > 0:
+                #ages.append(np.max(ag[ind]))
+            #else:
+            ages.append(ag[np.where(cd == np.max(cd))][0])
+        return np.array(ages)
+
     def _get_flux_weigh_vel(self, tau):
         """Compute the flux weighted velocity of a sightline"""
         vel = np.arange(self.nbins)
@@ -92,6 +108,13 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         except FloatingPointError:
             mvel = 0.
         return mvel
+
+    def save_file(self):
+        """Save a file including last time in star"""
+        return laststar.LastStar.save_file(self)
+
+    def load_savefile(self, savefile=None):
+        laststar.LastStar.load_savefile(self,savefile)
 
 class AggCIVPlot(object):
     """Class to compute various statistics specific to absorbers around something else, like DLAs or quasars.

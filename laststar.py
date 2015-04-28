@@ -64,10 +64,6 @@ class LastStar(spectra.Spectra):
     def get_age(self, elem, ion):
         """Get the column density weighted velocity in each pixel for a given species.
         """
-        try:
-            self.age
-        except AttributeError:
-            self.age = {}
         phys = self.dvbin/self.velfac*self.rscale
         try:
             self._really_load_array((elem, ion), self.age, "age")
@@ -102,3 +98,17 @@ class LastStar(spectra.Spectra):
         grp_grid = f.create_group("age")
         self._save_multihash(self.age, grp_grid)
         self._save_file(f)
+
+    def load_savefile(self, savefile=None):
+        """Do extra loading, including the last time in star"""
+        try:
+            f=h5py.File(savefile,'r')
+        except IOError:
+            raise IOError("Could not open file: "+savefile)
+        self.age = {}
+        grp = f["age"]
+        for elem in grp.keys():
+            for ion in grp[elem].keys():
+                self.age[(elem, int(ion))] = np.array([0])
+        f.close()
+        spectra.Spectra.load_savefile(self, savefile)

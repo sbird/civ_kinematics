@@ -88,6 +88,9 @@ class DLANrSpectra(spectra.Spectra, laststar.LastStar):
         """Save a file including last time in star"""
         return laststar.LastStar.save_file(self)
 
+    def load_savefile(self, savefile=None):
+        laststar.LastStar.load_savefile(self,savefile)
+
 
 def do_stuff(snap, base):
     """Make lines"""
