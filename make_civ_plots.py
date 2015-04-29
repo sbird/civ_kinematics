@@ -181,9 +181,10 @@ def hc_colden(ahalo):
     ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
     #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
     ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
-    plt.legend(loc='upper center', ncol=2)
     plt.yscale('log')
-    save_figure(path.join(outdir,ahalo.label+"ion_C_colden"))
+    plt.ylim(1e10, 1e17)
+    plt.legend(loc='upper right', ncol=3)
+    save_figure(path.join(outdir,"ion_C_colden"+ahalo.label.replace(" ","_")))
     plt.clf()
 
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
@@ -241,12 +242,12 @@ qsos = []
 
 base = path.expanduser("~/data/Illustris/")
 illsnaps = (60,63,65,66,68)
-qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False))
+qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False,velsize=1500,thresh=0.05))
 
 do_qso_plots("qso", qsos)
 
 for k in illsnaps:
-    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False))
+    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False, velsize=1500,thresh=0.05))
 
 do_qso_plots("small_qso", qsos)
 
