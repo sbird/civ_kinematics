@@ -106,9 +106,12 @@ class LastStar(spectra.Spectra):
         except IOError:
             raise IOError("Could not open file: "+savefile)
         self.age = {}
-        grp = f["age"]
-        for elem in grp.keys():
-            for ion in grp[elem].keys():
-                self.age[(elem, int(ion))] = np.array([0])
+        try:
+            grp = f["age"]
+            for elem in grp.keys():
+                for ion in grp[elem].keys():
+                    self.age[(elem, int(ion))] = np.array([0])
+        except KeyError:
+            pass
         f.close()
         spectra.Spectra.load_savefile(self, savefile)
