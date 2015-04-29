@@ -323,7 +323,8 @@ class AggCIVPlot(object):
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ind = np.where(eq_width[midpoint:] > eq_thresh)
-        lbins = np.arange(0, 300, 20)
+#         lbins = np.linspace(0,300,16)
+        lbins = np.linspace(0,120,7)
         (hist, _) = np.histogram(np.abs(vel_offset[ind]),lbins)
         norm = np.sum(hist)
         plt.bar(lbins[:-1], hist*12./norm, width=20, color=color, label=self.label, alpha=0.4)
