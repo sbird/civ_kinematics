@@ -72,8 +72,8 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         for (t1, t2) in zip(tau[0:midpoint, :], tau[midpoint:,:]):
             #First rotate lines so that the DLA is in the center.
             maxx = np.where(t1 == np.max(t1))[0][0]
-            rtau1 = np.roll(t1, maxx)
-            rtau2 = np.roll(t2, maxx)
+            rtau1 = np.roll(t1, self.nbins/2-maxx)
+            rtau2 = np.roll(t2, self.nbins/2-maxx)
             v1 = self._get_flux_weigh_vel(rtau1)
             v2 = self._get_flux_weigh_vel(rtau2)
             vdiff = v2 - v1
@@ -109,6 +109,35 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             mvel = 0.
         return mvel
 
+    def equivalent_width(self, elem, ion, line):
+        """Calculate the equivalent width of a line in Angstroms"""
+        tau = self.get_tau(elem, ion, line)
+        eq_width = np.zeros(self.NumLos)
+        midpoint = self.NumLos/2
+#         for (t1, t2, e1, e2) in zip(tau[0:midpoint, :], tau[midpoint:,:], eq_width[0:midpoint], eq_width[midpoint:]):
+        for i in xrange(midpoint):
+            #First rotate lines so that the DLA is in the center.
+            t1 = tau[i, :]
+            t2 = tau[i+midpoint, :]
+            maxx = np.where(t1 == np.max(t1))[0][0]
+            rtau1 = np.roll(t1, self.nbins/2-maxx)
+            rtau2 = np.roll(t2, self.nbins/2-maxx)
+            #Now compute eq. width for absorption +- N km/s from the center
+            rtau1 = rtau1[self.nbins/2-self.velsize:self.nbins/2+self.velsize]
+            rtau2 = rtau2[self.nbins/2-self.velsize:self.nbins/2+self.velsize]
+            #1 bin in wavelength: δλ =  λ . v / c
+            #λ here is the rest wavelength of the line.
+            #speed of light in km /s
+            light = ps.spectra.units.light / 1e5
+            #lambda in Angstroms, dvbin in km/s,
+            #so dl is in Angstrom
+            dl = self.dvbin / light * line
+            eq_width[i] = np.trapz(-np.expm1(-rtau1),dx=dl)
+            eq_width[i+midpoint] = np.trapz(-np.expm1(-rtau2),dx=dl)
+        #Don't need to divide by 1+z as lambda_X is already rest wavelength
+        assert np.any(eq_width > 0)
+        return eq_width
+
     def save_file(self):
         """Save a file including last time in star"""
         return laststar.LastStar.save_file(self)
@@ -121,13 +150,15 @@ class AggCIVPlot(object):
        Aggregates over a varied redshift range.
        First half of sightlines assumed to go through objects.
     """
-    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True):
+    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True, thresh=0.05, velsize = 600):
         #self.def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
         #As is observed
         self.def_radial_bins = np.array([5,100,200,275])
         self.color=color
         self.label=label
         self.ls=ls
+        self.velsize = velsize
+        self.eq_thresh = thresh
         #Distribution of redshifts in the data
         self.datareds = np.loadtxt(redfile)[:,1]
         #Listify if necessary
@@ -137,6 +168,8 @@ class AggCIVPlot(object):
             nums = (nums,)
         nums = np.sort(nums)
         self.snaps = [CIVPlot(n, base, res=res, savefile=savefile, spec_res=spec_res,load_halo=load_halo) for n in nums]
+        for ss in self.snaps:
+            ss.velsize = velsize
         #Set the total number of sightlines as the number from the first snapshot
         #(ideally all snapshots have the same number), and all snapshots must have the same bin width
         if numlos == None:
@@ -308,6 +341,7 @@ class AggCIVPlot(object):
 #         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2  #self.nobs below
+        eq_width[np.where(eq_width < self.eq_thresh)] = 0
         yerr = _generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,1000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins, label=label,line=False)
