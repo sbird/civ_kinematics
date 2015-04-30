@@ -49,6 +49,15 @@ def _generate_errors(spectra, offsets, radial_bins, nset, nsamples, error=0):
     return [lerr, uerr]
 
 
+def _get_flux_weigh_vel(tau):
+    """Compute the flux weighted velocity of a sightline"""
+    vel = np.arange(np.size(tau))
+    if np.sum(tau) == 0:
+        mvel = 0.
+    else:
+        mvel = np.sum(vel*tau)/np.sum(tau)
+    return mvel
+
 class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     """Class to add some methods to PlottingSpectra which are useful for spectra around objects."""
     def get_offsets(self):
@@ -74,8 +83,12 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(t1 == np.max(t1))[0][0]
             rtau1 = np.roll(t1, self.nbins/2-maxx)
             rtau2 = np.roll(t2, self.nbins/2-maxx)
-            v1 = self._get_flux_weigh_vel(rtau1)
-            v2 = self._get_flux_weigh_vel(rtau2)
+            #Now compute eq. width for absorption +- N km/s from the center
+            binwd = self.velsize/self.dvbin
+            rtau1 = rtau1[self.nbins/2-binwd:self.nbins/2+binwd]
+            rtau2 = rtau2[self.nbins/2-binwd:self.nbins/2+binwd]
+            v1 = _get_flux_weigh_vel(rtau1)
+            v2 = _get_flux_weigh_vel(rtau2)
             vdiff = v2 - v1
             if vdiff > self.nbins/2:
                 vdiff = (vdiff-self.nbins/2)
@@ -83,6 +96,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
                 vdiff = (vdiff+self.nbins/2)
             offsets.append(vdiff*self.dvbin)
         vel_offsets = np.array(offsets)
+        assert np.all(vel_offsets < 2*self.velsize)
         return vel_offsets
 
     def get_most_recent(self, elem="C", ion=4):
@@ -99,15 +113,6 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             #else:
             ages.append(ag[np.where(cd == np.max(cd))][0])
         return np.array(ages)
-
-    def _get_flux_weigh_vel(self, tau):
-        """Compute the flux weighted velocity of a sightline"""
-        vel = np.arange(self.nbins)
-        try:
-            mvel = np.sum(vel*tau)/np.sum(tau)
-        except FloatingPointError:
-            mvel = 0.
-        return mvel
 
     def equivalent_width(self, elem, ion, line):
         """Calculate the equivalent width of a line in Angstroms"""
