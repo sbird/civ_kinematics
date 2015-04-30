@@ -242,12 +242,12 @@ qsos = []
 
 base = path.expanduser("~/data/Illustris/")
 illsnaps = (60,63,65,66,68)
-qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False,velsize=1500,thresh=0.05))
+qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False,velsize=1500))
 
 do_qso_plots("qso", qsos)
 
 for k in illsnaps:
-    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False, velsize=1500,thresh=0.05))
+    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False, velsize=1500))
 
 do_qso_plots("small_qso", qsos)
 

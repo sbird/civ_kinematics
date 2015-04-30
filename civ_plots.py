@@ -150,7 +150,7 @@ class AggCIVPlot(object):
        Aggregates over a varied redshift range.
        First half of sightlines assumed to go through objects.
     """
-    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True, thresh=0.05, velsize = 600):
+    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True, velsize = 600):
         #self.def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
         #As is observed
         self.def_radial_bins = np.array([5,100,200,275])
@@ -158,7 +158,6 @@ class AggCIVPlot(object):
         self.label=label
         self.ls=ls
         self.velsize = velsize
-        self.eq_thresh = thresh
         #Distribution of redshifts in the data
         self.datareds = np.loadtxt(redfile)[:,1]
         #Listify if necessary
@@ -341,7 +340,6 @@ class AggCIVPlot(object):
 #         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2  #self.nobs below
-        eq_width[np.where(eq_width < self.eq_thresh)] = 0
         yerr = _generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,1000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins, label=label,line=False)
