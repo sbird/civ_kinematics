@@ -272,7 +272,7 @@ for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
     aahalos.append(halo)
 
 #Add Illustris
-illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "QSORperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
+illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "DLARperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
 aahalos.append(illhalo)
 
 CIV_vel_offset("feed", [illhalo,])
