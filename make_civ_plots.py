@@ -173,18 +173,23 @@ def rel_c_colden(ahalo):
     save_figure(path.join(outdir,"ion_C_colden_ratio"))
     plt.clf()
 
-def hc_colden(ahalo):
+def hc_colden(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     """Plot the column densities for different CIV ions"""
-    ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
-    ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
-    ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
-    ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
+    if 2 in ions:
+        ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+    if 3 in ions:
+        ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+    if 4 in ions:
+        ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+    if 5 in ions:
+        ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
-    ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12))
+    if -1 in ions:
+        ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     plt.yscale('log')
     plt.ylim(1e10, 1e17)
     plt.legend(loc='upper right', ncol=3)
-    save_figure(path.join(outdir,"ion_C_colden"+ahalo.label.replace(" ","_")))
+    save_figure(path.join(outdir,name+"_C_colden"+ahalo.label.replace(" ","_")))
     plt.clf()
 
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
@@ -205,6 +210,22 @@ def qso_eq_width(ionname, elem, ion, line, name, ahalos):
     plt.ylim(0,1.0)
     plt.legend()
     save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
+    plt.clf()
+
+def qso_colden_coverfrac(elem, ion, name, ahalos):
+    """Plot covering fraction for QSOs"""
+    CGM_c = np.loadtxt("QPQ6fc.dat")
+    for ahalo in ahalos:
+        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
+        ahalo.plot_covering_fraction_colden(cd_thresh=10**17.2,elem=elem, ion=ion)
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"$F(N_{HI} > 10^{17.2} \mathrm{cm}^{-2})$")
+    #Rmin Rmax mpair   fc1216     +1s    -1s
+    Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
+    plt.errorbar(Rmean, CGM_c[:,3], yerr = [CGM_c[:,4],CGM_c[:,5]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
+    plt.ylim(0,1.0)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_HI_coverfrac"))
     plt.clf()
 
 def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
@@ -234,6 +255,7 @@ def do_qso_plots(name, ahalos):
     qso_coverfrac("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CII", "C", 2, 1334, name, ahalos)
     qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
+    qso_colden_coverfrac("H",1,name, ahalos)
 
 qsos = []
 #for i in (7,9):
@@ -245,6 +267,8 @@ illsnaps = (60,63,65,66,68)
 qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False,velsize=1500))
 
 do_qso_plots("qso", qsos)
+
+hc_colden(qsos[0], upper=1000, name="qso", ions=(2,4))
 
 for k in illsnaps:
     qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False, velsize=1500))

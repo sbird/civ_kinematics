@@ -99,6 +99,23 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         assert np.all(vel_offsets < 2*self.velsize)
         return vel_offsets
 
+    def get_sum_col_density(self,elem, ion):
+        """Get the column density summed over some (finite) velocity range around the deepest absorption"""
+        cd = self.get_col_density(elem, ion)
+        sumcd = np.zeros(self.NumLos)
+        midpoint = self.NumLos/2
+        for i in xrange(midpoint):
+            #First rotate lines so that the strongest absorber is in the center.
+            c1 = cd[i, :]
+            c2 = cd[i+midpoint, :]
+            maxx = np.where(c1 == np.max(c1))[0][0]
+            rcd1 = np.roll(c1, self.nbins/2-maxx)
+            rcd2 = np.roll(c2, self.nbins/2-maxx)
+            #Now compute summed columns +- N km/s from the center
+            sumcd[i] = np.sum(rcd1[self.nbins/2-self.velsize:self.nbins/2+self.velsize])
+            sumcd[i+midpoint] = np.sum(rcd2[self.nbins/2-self.velsize:self.nbins/2+self.velsize])
+        return sumcd
+
     def get_most_recent(self, elem="C", ion=4):
         """Get for every sightline the most recent enrichment event"""
         midpoint = self.NumLos/2
@@ -233,7 +250,7 @@ class AggCIVPlot(object):
 
     def get_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
-        cd = [np.sum(qq.get_col_density(elem, ion),axis=1) for qq in self.snaps]
+        cd = [qq.get_sum_col_density(elem, ion) for qq in self.snaps]
         return self._get_aggregate(cd)
 
     def get_offsets(self):
@@ -323,7 +340,7 @@ class AggCIVPlot(object):
         midpoint = self.NumLos/2
         covering = np.zeros_like(cdensity[midpoint:])
         covering[np.where(cdensity[midpoint:] > cd_thresh)] = 1
-        return self._plot_radial(covering, color, ls, "--", radial_bins, label=label)
+        return self._plot_radial(covering, color, ls, "--", radial_bins, label=label,line=False)
 
     def _get_errors(self, num, elem="C", ion=4):
         """Get errors on the equivalent widths by sampling from the observed errors"""
