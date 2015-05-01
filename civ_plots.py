@@ -111,9 +111,10 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(c1 == np.max(c1))[0][0]
             rcd1 = np.roll(c1, self.nbins/2-maxx)
             rcd2 = np.roll(c2, self.nbins/2-maxx)
+            binwd = self.velsize/self.dvbin
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = np.sum(rcd1[self.nbins/2-self.velsize:self.nbins/2+self.velsize])
-            sumcd[i+midpoint] = np.sum(rcd2[self.nbins/2-self.velsize:self.nbins/2+self.velsize])
+            sumcd[i] = np.sum(rcd1[self.nbins/2-binwd:self.nbins/2+binwd])
+            sumcd[i+midpoint] = np.sum(rcd2[self.nbins/2-binwd:self.nbins/2+binwd])
         return sumcd
 
     def get_most_recent(self, elem="C", ion=4):
@@ -144,9 +145,10 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(t1 == np.max(t1))[0][0]
             rtau1 = np.roll(t1, self.nbins/2-maxx)
             rtau2 = np.roll(t2, self.nbins/2-maxx)
+            binwd = self.velsize/self.dvbin
             #Now compute eq. width for absorption +- N km/s from the center
-            rtau1 = rtau1[self.nbins/2-self.velsize:self.nbins/2+self.velsize]
-            rtau2 = rtau2[self.nbins/2-self.velsize:self.nbins/2+self.velsize]
+            rtau1 = rtau1[self.nbins/2-binwd:self.nbins/2+binwd]
+            rtau2 = rtau2[self.nbins/2-binwd:self.nbins/2+binwd]
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
