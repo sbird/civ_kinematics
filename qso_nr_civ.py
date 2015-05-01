@@ -22,7 +22,7 @@ class QSONrSpectra(spectra.Spectra):
         self.redmax = redmax
         self.npart=f["Header"].attrs["NumPart_Total"]+2**32*f["Header"].attrs["NumPart_Total_HighWord"]
         f.close()
-        (_, self.sub_mass, cofm, self.sub_radii) = halocat.find_wanted_halos(num, base, min_mass/1e10)
+        (_, self.sub_mass, cofm, self.sub_radii) = halocat.find_wanted_halos(num, base, self.hubble*min_mass/1e10)
         print np.size(self.sub_mass)," halos found"
         if np.size(self.sub_mass) == 0:
             raise ValueError
