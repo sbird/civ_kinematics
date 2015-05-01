@@ -225,6 +225,12 @@ class AggCIVPlot(object):
         assert total == np.size(agg)
         return agg
 
+    def find_nearest_halo(self):
+        """Find the nearest halo to the DLA sightline"""
+        midpoint = self.NumLos/2
+        near_halos = [qq.find_nearest_halo()[:midpoint][0] for qq in self.snaps]
+        return self._get_aggregate(near_halos, multiplier=1)
+
     def get_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
         cd = [np.sum(qq.get_col_density(elem, ion),axis=1) for qq in self.snaps]
@@ -349,14 +355,19 @@ class AggCIVPlot(object):
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins, label=label,line=False)
 
+    def get_vel_offset(self,elem, ion, line):
+        """Get the velocity offset between a pair of sightlines"""
+        vel_offsets = [qq.get_flux_vel_offset(elem, ion, line) for qq in self.snaps]
+        vel_offset = self._get_aggregate(vel_offsets, multiplier=1)
+        return vel_offset
+
     def plot_flux_vel_offset(self, eq_thresh = 0.2, color=None, elem="C", ion=4, line=1548):
         """
         Plot the covering fraction of a given pair line above a threshold in radial bins
         """
         if color == None:
             color = self.color
-        vel_offsets = [qq.get_flux_vel_offset(elem, ion, line) for qq in self.snaps]
-        vel_offset = self._get_aggregate(vel_offsets, multiplier=1)
+        vel_offset = self.get_vel_offset(elem, ion, line)
         eq_width = self.equivalent_width(elem, ion, line)
         midpoint = self.NumLos/2
         ind = np.where(eq_width[midpoint:] > eq_thresh)
@@ -367,3 +378,12 @@ class AggCIVPlot(object):
         plt.bar(lbins[:-1], hist*12./norm, width=20, color=color, label=self.label, alpha=0.4)
         return (lbins, hist)
 
+    def find_vir_ratio(self, elem="C", ion=4,line=1548, eq_thresh=0.2):
+        """The ratio between the virial velocity and the velocity offset. This is not helpful."""
+        vel_offset = self.get_vel_offset(elem, ion, line)
+        eq_width = self.equivalent_width(elem, ion, line)
+        midpoint = self.NumLos/2
+        ind = np.where(eq_width[midpoint:] > eq_thresh)
+        vir = self.snaps[0].virial_vel()
+        halos = self.find_nearest_halo()
+        return vel_offset/vir[halos]
