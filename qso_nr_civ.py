@@ -31,7 +31,7 @@ class QSONrSpectra(spectra.Spectra):
         #Re-seed for repeatability
         np.random.seed(23)
         (cofm, axis) = self.get_cofm(numlos)
-        spectra.Spectra.__init__(self,num, base, None, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
+        spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
 
     def get_cofm(self, num = None):
         """Find a bunch more sightlines: get a random sample of sightlines through quasars, then generate pairs offset by a random amount."""
