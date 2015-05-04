@@ -85,15 +85,15 @@ def do_stuff(snap, base):
     halo = DLANrSpectra(snap,base,4000, reds[snap][0], reds[snap][1])
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("H",1,1215, force_recompute=False)
-    halo.get_tau("C",-1,1548, force_recompute=False)
     halo.get_tau("C",2,1334, force_recompute=False)
     halo.get_tau("Si",2,1526, force_recompute=False)
     halo.get_tau("Si",4,1393, force_recompute=False)
-    for ion in xrange(1,8):
+    print "Got taus"
+    for ion in (2,3,4,5): #xrange(1,8):
         halo.get_density("C",ion)
     halo.get_density("C",-1)
-    halo.get_velocity("C",4)
     halo.get_density("H",1)
+    print "Got density"
     halo.save_file()
 
 if __name__ == "__main__":
