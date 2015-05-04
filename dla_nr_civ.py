@@ -43,22 +43,6 @@ class DLANrSpectra(spectra.Spectra, laststar.LastStar):
         """Find a bunch more sightlines: do nothing in this case"""
         return num
 
-    def get_rand_pert(self, num, minradius, maxradius):
-        """Get random perturbations within a projected distance of radius specified in proper kpc"""
-        #Convert from proper kpc to comoving kpc/h
-        conv = self.hubble/self.atime
-        minradius *= conv
-        maxradius *= conv
-        #Generate random sphericals
-        #theta = 2*math.pi*np.random.random_sample(num)-math.pi
-        phi = 2*math.pi*np.random.random_sample(num)
-        rr = (maxradius-minradius)*np.random.random_sample(num) + minradius
-        #Add them to halo centers
-        cofm = np.empty((num, 2), dtype=np.float64)
-        cofm[:,0]=rr*np.cos(phi)
-        cofm[:,1]=rr*np.sin(phi)
-        return cofm
-
     def get_weighted_perp(self, num):
         """Get a random perturbation with a radius weighted by the number of
            quasars in radial bins in the DLA-CGM survey."""
@@ -72,16 +56,19 @@ class DLANrSpectra(spectra.Spectra, laststar.LastStar):
         phi = 2*math.pi*np.random.random_sample(num)
         rr = np.empty_like(phi)
         total = 0
-        for ii in xrange(np.size(hists)):
+        for ii in xrange(np.size(hists)-1):
             #How many sightlines in this bin?
             #The proportion from the observed survey, but at least 1 and no more
             #than we have left in the bag
             this = np.min((np.max((int(num*hists[ii]/1./np.sum(hists)),1)), num - total))
             rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
             total+=this
-        cofm = np.empty((num, 2), dtype=np.float64)
-        cofm[:,0]=rr*np.cos(phi)
-        cofm[:,1]=rr*np.sin(phi)
+        this = num - total
+        rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-2]
+        assert np.max(rr) < rbins[-1]
+        assert np.min(rr) > rbins[0]
+        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)])
+        assert np.shape(cofm) == (np.size(rr), 2)
         return cofm
 
     def save_file(self):

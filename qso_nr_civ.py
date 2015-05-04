@@ -28,41 +28,27 @@ class QSONrSpectra(spectra.Spectra):
             raise ValueError
         self.sub_cofm = np.array(cofm, dtype=np.float64)
         self.NumLos = numlos
-        #All through y axis
-        axis = np.ones(self.NumLos)
         #Re-seed for repeatability
         np.random.seed(23)
-        select = np.random.randint(0,np.size(self.sub_mass),numlos)
+        (cofm, axis) = self.get_cofm(numlos)
+        spectra.Spectra.__init__(self,num, base, None, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
+
+    def get_cofm(self, num = None):
+        """Find a bunch more sightlines: get a random sample of sightlines through quasars, then generate pairs offset by a random amount."""
+        #All through x axis
+        axis = np.ones(self.NumLos)
+        select = np.random.randint(0,np.size(self.sub_mass),num)
         #Select the spectra
         cofm = np.concatenate((self.sub_cofm[select], self.sub_cofm[select]))
         axis = np.concatenate((axis, axis))
         #Add a small perturbation to the sightline cofm
         axx = set([0,1,2])
-        rands = self.get_weighted_perp(numlos)
-        for i in np.arange(0,numlos):
-            ax = axx - set([axis[numlos+i]])
-            cofm[numlos+i, list(ax)] += rands[i]
-        spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
-
-    def get_cofm(self, num = None):
-        """Find a bunch more sightlines: do nothing in this case"""
-        return num
-
-    def get_rand_pert(self, num, minradius, maxradius):
-        """Get random perturbations within a projected distance of radius specified in proper kpc"""
-        #Convert from proper kpc to comoving kpc/h
-        conv = self.hubble/self.atime
-        minradius *= conv
-        maxradius *= conv
-        #Generate random sphericals
-        #theta = 2*math.pi*np.random.random_sample(num)-math.pi
-        phi = 2*math.pi*np.random.random_sample(num)
-        rr = (maxradius-minradius)*np.random.random_sample(num) + minradius
-        #Add them to halo centers
-        cofm = np.empty((num, 2), dtype=np.float64)
-        cofm[:,0]=rr*np.cos(phi)
-        cofm[:,1]=rr*np.sin(phi)
-        return cofm
+        rands = self.get_weighted_perp(num)
+        #Note self.axis is 1 indexed, not 0 indexed
+        for i in np.arange(num):
+            ax = axx - set([axis[num+i]-1])
+            cofm[num+i, list(ax)] += rands[i]
+        return (cofm, axis)
 
     def get_weighted_perp(self, num):
         """Get a random perturbation with a radius weighted by the number of
@@ -71,7 +57,7 @@ class QSONrSpectra(spectra.Spectra):
         rperp = np.loadtxt("QSORperpred.txt")
         #Select quasars in the given redshift range
         ind = np.where(np.logical_and(rperp[:,1] > self.redmin, rperp[:,1] < self.redmax))
-        rbins = np.logspace(1.5, 3, 6)
+        rbins = np.logspace(1.5, 3, 15)
         (hists, rbins) = np.histogram(rperp[ind,0][0], rbins)
         conv = self.hubble/self.atime
         rbins *= conv
@@ -86,10 +72,11 @@ class QSONrSpectra(spectra.Spectra):
             rr[total:total+this] = (rbins[ii+1] - rbins[ii])*np.random.random_sample(this) + rbins[ii]
             total+=this
         this = num - total
-        rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-1]
-        cofm = np.empty((num, 2), dtype=np.float64)
-        cofm[:,0]=rr*np.cos(phi)
-        cofm[:,1]=rr*np.sin(phi)
+        rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-2]
+        assert np.max(rr) < rbins[-1]
+        assert np.min(rr) > rbins[0]
+        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)])
+        assert np.shape(cofm) == (np.size(rr), 2)
         return cofm
 
 def do_stuff(snap, path, redmin, redmax):
@@ -110,8 +97,8 @@ if __name__ == "__main__":
     #reds = {5:(1.,2.25), 4:(2.25, 2.75), 3:(2.75, 3.25)}
     #For big box (with better spacing)
     reds = {68:(1.,2.1), 66:(2.1, 2.25), 65:(2.25, 2.4465), 63:(2.4465,2.785), 60:(2.785,5.)}
-    base = "/n/ghernquist/Illustris/Runs/Illustris-1/"
+    ibase = "/n/ghernquist/Illustris/Runs/Illustris-1/"
     j = int(sys.argv[1])
     zz = reds[j]
-    do_stuff(j, base, zz[0], zz[1])
+    do_stuff(j, ibase, zz[0], zz[1])
 
