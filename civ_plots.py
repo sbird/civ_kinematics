@@ -63,12 +63,10 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
         midpoint = self.NumLos/2
-        axx = set([0,1,2])
-        offsets = np.empty(midpoint)
-        for ii in np.arange(midpoint):
-            ax = list(axx - set([self.axis[ii]]))
-            offsets[ii] = np.sqrt(np.sum((self.cofm[ii,ax] - self.cofm[ii+midpoint,ax])**2))
+        axisdiff = np.array([(self.cofm[ii,self.axis[ii]-1] - self.cofm[midpoint+ii,self.axis[ii]-1])**2 for ii in xrange(midpoint)])
+        offsets = np.sqrt(np.sum((self.cofm[:midpoint,:] - self.cofm[midpoint:,:])**2,axis=1) - axisdiff)
         offsets *= self.atime/self.hubble
+        assert np.size(offsets) == midpoint
         return offsets
 
     def get_flux_vel_offset(self, elem="C", ion=4, line=1548):
