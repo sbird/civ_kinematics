@@ -75,7 +75,7 @@ class QSONrSpectra(spectra.Spectra):
         rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-2]
         assert np.max(rr) < rbins[-1]
         assert np.min(rr) > rbins[0]
-        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)])
+        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)]).T
         assert np.shape(cofm) == (np.size(rr), 2)
         return cofm
 
