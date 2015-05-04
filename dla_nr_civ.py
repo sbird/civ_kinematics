@@ -8,7 +8,7 @@ import laststar
 import myname
 import hdfsim
 
-class DLANrSpectra(spectra.Spectra, laststar.LastStar):
+class DLANrSpectra(laststar.LastStar):
     """Generate metal line spectra from simulation snapshot"""
     def __init__(self,num, base, numlos, redmin, redmax, res = 5., cdir = None, savefile="nr_dla_spectra.hdf5", savedir=None, reload_file=True):
         #Get a sample of DLAs from the savefile
@@ -35,7 +35,7 @@ class DLANrSpectra(spectra.Spectra, laststar.LastStar):
         rands = self.get_weighted_perp(numlos)
         for i in np.arange(0,numlos):
             ax = axx - set([axis[numlos+i]])
-            cofm[numlos+i, list(ax)] += rands[i]
+            cofm[numlos+i, list(ax)] += rands[i,:]
         spectra.Spectra.__init__(self,num, base, cofm, axis, res, cdir, savefile=savefile,savedir=savedir,reload_file=reload_file)
         self.age = {}
 
@@ -67,8 +67,8 @@ class DLANrSpectra(spectra.Spectra, laststar.LastStar):
         rr[total:] = (rbins[-1] - rbins[-2])*np.random.random_sample(this) + rbins[-2]
         assert np.max(rr) < rbins[-1]
         assert np.min(rr) > rbins[0]
-        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)])
-        assert np.shape(cofm) == (np.size(rr), 2)
+        cofm=np.array([rr*np.cos(phi), rr*np.sin(phi)]).T
+        assert np.shape(cofm) == (np.size(rr),2)
         return cofm
 
     def save_file(self):
