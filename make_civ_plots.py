@@ -15,8 +15,8 @@ import numpy as np
 from save_figure import save_figure
 
 np.seterr(divide='raise',invalid='raise')
-labels = {1:"HVEL", 3:"NOSN", 5:"MVEL", 7:"ILLUS 25", 9:"FAST 25", 4:"WARM 25",6:"LOAD", 'I':"ILLUS 75"}
-colors = {1:"purple", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green",'I':"brown"}
+labels = {1:"HVEL", 2:"HVNOAGN", 3:"NOSN", 5:"MVEL", 7:"ILLUS 25", 9:"FAST 25", 4:"WARM 25",6:"LOAD", 'I':"ILLUS 75"}
+colors = {1:"purple", 2:"orange", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green",'I':"brown"}
 lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:":", 8:"-",9:"-.",'A':"--",  'S':"--",'VS':"-", 'I':"-"}
 
 outdir = path.join(myname.base, "civ_plots/")
@@ -187,7 +187,7 @@ def hc_colden(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     if -1 in ions:
         ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     plt.yscale('log')
-    plt.ylim(1e10, 1e17)
+    plt.ylim(1e7, 1e17)
     plt.legend(loc='upper right', ncol=3)
     save_figure(path.join(outdir,name+"_C_colden"+ahalo.label.replace(" ","_")))
     plt.clf()
@@ -302,7 +302,7 @@ aahalos.append(illhalo)
 CIV_vel_offset("feed", [illhalo,])
 do_civ_plots("feed",aahalos)
 
-plot_r_offsets(aahalos[-2])
+[plot_r_offsets(a) for a in aahalos]
 plt.legend()
 save_figure(path.join(outdir,"CIV_r_offset"))
 plt.clf()
