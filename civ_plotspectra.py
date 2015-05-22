@@ -5,6 +5,7 @@ import os.path as path
 import plot_spectra as ps
 import line_data
 import numexpr as ne
+import h5py
 from save_figure import save_figure
 
 
@@ -106,16 +107,37 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             dists[ii] = np.sqrt(dd[ind][0])
         return (halos, dists)
 
+    def _save_spectra_halos(self):
+        """Save the computed spectra and distances to the savefile."""
+        f=h5py.File(self.savefile,'r+')
+        f["spectra"]["halos"] = self.spectra_halos
+        f["spectra"]["dist"] = self.spectra_dists
+        f.close()
+
+    def _load_spectra_halos(self):
+        """Save the computed spectra and distances to the savefile."""
+        f=h5py.File(self.savefile,'r')
+        try:
+            self.spectra_halos = np.array(f["spectra"]["halos"])
+            self.spectra_dists = np.array(f["spectra"]["dist"])
+        finally:
+            f.close()
+
     def find_nearest_halo(self, elem="C", ion=4, thresh=50):
         """Find the single most massive halos associated with absorption near a sightline, possibly via a subhalo."""
         try:
             return (self.spectra_halos, self.spectra_dists)
         except AttributeError:
-            pass
+            try:
+                self._load_spectra_halos()
+                return (self.spectra_halos, self.spectra_dists)
+            except KeyError:
+                pass
         zpos = self.get_contiguous_regions(elem=elem, ion=ion, thresh = thresh)
         (halos, dists) = self.assign_to_halo(zpos, self.sub_radii, self.sub_cofm)
         self.spectra_halos = halos
         self.spectra_dists = dists
+        self._save_spectra_halos()
         return (halos, dists)
 
     def plot_eqw_mass(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
