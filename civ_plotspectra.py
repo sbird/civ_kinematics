@@ -70,7 +70,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.xlabel(r"$W_{1548} (\AA)$")
         plt.ylabel(r"N$_\mathrm{CIV}$ (cm$^{2}$)")
 
-    def assign_to_halo(self, zpos, halo_radii, halo_cofm):
+    def assign_to_halo(self, zpos, halo_radii, halo_cofm, maxdist = 170):
         """
         Overload assigning positions to halos. As CIV absorbers are usually outside the virial radius,
         this is a bit complicated.
@@ -79,9 +79,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         not be able to see subhalos, and will generally expect to find a bright galaxy within 100 kpc
         of the absorber.
 
-        We similarly abandon subhalos, and any concept of the virial radius (as it makes less sense for unbound objects).
-
-        Instead we just look for the closest central halo.
+        Thus look for the most massive halo within 160 kpc (physical), which is about a quasar virial radius.
         """
         dists = np.zeros_like(zpos)
         halos = np.zeros_like(zpos, dtype=np.int)
@@ -91,13 +89,21 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             ax = self.axis[ii]-1
             proj_pos[ax] = zpos[ii]
             #Closest halo in units of halo virial radius
-            dd = ne.evaluate("sum((halo_cofm - proj_pos)**2,axis=1)")
             indd = np.where(self.sub_mass > 0)
-            dd[indd]/=halo_radii[indd]**2
+            fhc = halo_cofm[indd,:][0]
+            assert np.size(np.shape(fhc)) == 2
+            assert np.shape(fhc)[1] == 3
+            dd = ne.evaluate("sum((fhc - proj_pos)**2,axis=1)")
+            ind = np.where(dd < maxdist**2)
+            #No halo that close
+            if np.size(ind) == 0:
+                halos[ii] = -1
+                dists[ii] = 200
+                continue
             #Minimal distance
-            ind = np.where(dd[indd] == np.min(dd[indd]))
+            ind = np.where(self.sub_mass[indd] == np.max(self.sub_mass[indd][ind]))
             halos[ii] = indd[0][ind][0]
-            dists[ii] = np.sqrt(dd[indd][ind][0])
+            dists[ii] = np.sqrt(dd[ind][0])
         return (halos, dists)
 
     def find_nearest_halo(self, elem="C", ion=4, thresh=50):
@@ -122,13 +128,14 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         medians = np.ones_like(center)
         uquart= np.ones_like(center)
         lquart = np.ones_like(center)
+        assoc = np.where(halos >=0)
         for ii in xrange(0,np.size(W_table)-1):
             #Lines in this bin
-            ind = np.where(np.logical_and(eqw < W_table[ii+1],eqw > W_table[ii]))
+            ind = np.where(np.logical_and(eqw[assoc] < W_table[ii+1],eqw[assoc] > W_table[ii]))
             if np.size(ind) > 0:
-                medians[ii] = np.median(self.sub_mass[halos[ind]])
-                uquart[ii] = np.percentile(self.sub_mass[halos[ind]],75)
-                lquart[ii] = np.percentile(self.sub_mass[halos[ind]],25)
+                medians[ii] = np.median(self.sub_mass[halos[assoc][ind]])
+                uquart[ii] = np.percentile(self.sub_mass[halos[assoc][ind]],75)
+                lquart[ii] = np.percentile(self.sub_mass[halos[assoc][ind]],25)
         plt.loglog(center, medians,ls="-",color=color,label=self.label)
         plt.loglog(center, uquart,ls=":",color=color)
         plt.loglog(center, lquart, ls=":",color=color)
@@ -136,6 +143,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         #plt.xlabel(r"$W_\mathrm{1548} (\AA )$")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.ylim(1e9,1e13)
+        print "Fraction with no halo: ",np.size(assoc)/1./np.size(halos)
 
     def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
         """Plot median distance from halo in terms of virial radius as a function of column density (misnamed function!)"""
@@ -147,16 +155,18 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         medians = np.ones_like(center)
         uquart= np.ones_like(center)
         lquart = np.ones_like(center)
+        assoc = np.where(halos >=0)
         for ii in xrange(0,np.size(W_table)-1):
             #Lines in this bin
-            ind = np.where(np.logical_and(eqw < W_table[ii+1],eqw > W_table[ii]))
+            ind = np.where(np.logical_and(eqw[assoc] < W_table[ii+1],eqw[assoc] > W_table[ii]))
             if np.size(ind) > 0:
-                medians[ii] = np.median(dists[ind])
-                uquart[ii] = np.percentile(dists[ind],75)
-                lquart[ii] = np.percentile(dists[ind],25)
+                medians[ii] = np.median(dists[assoc][ind])
+                uquart[ii] = np.percentile(dists[assoc][ind],75)
+                lquart[ii] = np.percentile(dists[assoc][ind],25)
         plt.semilogx(center,medians, color=color,label=self.label)
         plt.semilogx(center, uquart,ls=":",color=color)
         plt.semilogx(center, lquart, ls=":",color=color)
+        print "Fraction with no halo: ",np.size(assoc)/1./np.size(halos)
         plt.ylabel(r"Distance (R$_\mathrm{vir}$)")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.xlim(minW,maxW)
