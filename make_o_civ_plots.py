@@ -145,12 +145,20 @@ def do_halomass_plots(fosc):
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_eqwvsdist"))
     plt.clf()
+    for (ll, ahalo) in ahalos.iteritems():
+        ahalo.plot_mass_hist("C",4,1548,color=colors[ll])
+    plt.legend(loc="upper right",ncol=1)
+    #plt.ylim(-0.03,2.8)
+    #plt.xlim(10,400)
+    save_figure(path.join(outdir,"civ_halos_hist"))
+    plt.clf()
+
 
 if __name__ == "__main__":
     #Plot eq. width vs column density and halo mass
     lines = line_data.LineData()
     fosc = lines[("C", 4)][1548].fosc_X
-    #do_halomass_plots(fosc)
+    do_halomass_plots(fosc)
     sims = (7,4,9) #1,2,
     #z=1.6-3.5 col den cddf
     plot_cddf("I",75)

@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 """Subclass PlottingSpectra for the CGM, adding a few methods and overriding the halo assignment."""
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import numpy as np
 import os.path as path
@@ -8,8 +10,31 @@ import numexpr as ne
 import h5py
 from save_figure import save_figure
 
-
 class CIVPlottingSpectra(ps.PlottingSpectra):
+    def equivalent_width(self, elem, ion, line, limit=600.):
+        """Calculate the equivalent width of a line in Angstroms, limited to 600 km/s on either side of the strongest absorber."""
+        tau = self.get_tau(elem, ion, line)
+        eq_width = np.zeros(self.NumLos)
+        for i in xrange(self.NumLos):
+            #First rotate lines so that the DLA is in the center.
+            t1 = tau[i, :]
+            maxx = np.where(t1 == np.max(t1))[0][0]
+            rtau1 = np.roll(t1, self.nbins/2-maxx)
+            binwd = limit/self.dvbin
+            #Now compute eq. width for absorption +- N km/s from the center
+            rtau1 = rtau1[self.nbins/2-binwd:self.nbins/2+binwd]
+            #1 bin in wavelength: δλ =  λ . v / c
+            #λ here is the rest wavelength of the line.
+            #speed of light in km /s
+            light = ps.spectra.units.light / 1e5
+            #lambda in Angstroms, dvbin in km/s,
+            #so dl is in Angstrom
+            dl = self.dvbin / light * line
+            eq_width[i] = np.trapz(-np.expm1(-rtau1),dx=dl)
+        #Don't need to divide by 1+z as lambda_X is already rest wavelength
+        assert np.any(eq_width > 0)
+        return eq_width
+
     def eq_width_dist(self,elem = "C", ion = 4, line=1548, dlogW=0.2, minW=0.005, maxW=5., moment=False):
         """
         This computes the equivalent width frequency distribution, defined in analogy to the column density function.
@@ -80,7 +105,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         not be able to see subhalos, and will generally expect to find a bright galaxy within 100 kpc
         of the absorber.
 
-        Thus look for the most massive halo within 160 kpc (physical), which is about a quasar virial radius.
+        Thus look for the most massive halo within 170 kpc (physical), which is about a quasar virial radius.
         """
         dists = np.zeros_like(zpos)
         halos = np.zeros_like(zpos, dtype=np.int)
@@ -165,7 +190,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         #plt.xlabel(r"$W_\mathrm{1548} (\AA )$")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.ylim(1e9,1e13)
-        print "Fraction with no halo: ",np.size(assoc)/1./np.size(halos)
+        print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
 
     def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
         """Plot median distance from halo in terms of virial radius as a function of column density (misnamed function!)"""
@@ -188,11 +213,61 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.semilogx(center,medians, color=color,label=self.label)
         plt.semilogx(center, uquart,ls=":",color=color)
         plt.semilogx(center, lquart, ls=":",color=color)
-        print "Fraction with no halo: ",np.size(assoc)/1./np.size(halos)
+        print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
         plt.ylabel(r"Distance (R$_\mathrm{vir}$)")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.xlim(minW,maxW)
 
+    def get_sum_col_density(self,elem, ion, limit=600.):
+        """Get the column density summed over some (finite) velocity range around the deepest absorption"""
+        cd = self.get_col_density(elem, ion)
+        sumcd = np.zeros(self.NumLos)
+        for i in xrange(self.NumLos):
+            #First rotate lines so that the strongest absorber is in the center.
+            c1 = cd[i, :]
+            maxx = np.where(c1 == np.max(c1))[0][0]
+            rcd1 = np.roll(c1, self.nbins/2-maxx)
+            binwd = limit/self.dvbin
+            #Now compute summed columns +- N km/s from the center
+            sumcd[i] = np.sum(rcd1[self.nbins/2-binwd:self.nbins/2+binwd])
+        return sumcd
+
+    def mass_hist(self, dm=0.5, nmin=None, elem="C", ion=4):
+        """
+        Compute a histogram of host halo masses
+
+        Parameters:
+            dm - bin spacing
+
+        Returns:
+            (mbins, pdf) - Mass (binned in log) and corresponding PDF.
+        """
+        (halos, _) = self.find_nearest_halo()
+        if nmin == None:
+            f_ind = np.where(halos != -1)
+        else:
+            f_ind = np.where(np.logical_and(halos != -1, self.get_sum_col_density(elem, ion,600) > nmin))
+        #nlos = np.shape(vel_width)[0]
+        #print 'nlos = ',nlos
+        virial = self.sub_mass[halos[f_ind]]
+        m_table = 10**np.arange(np.log10(np.min(virial)+0.1), np.log10(np.max(virial)), dm)
+        mbin = np.array([(m_table[i]+m_table[i+1])/2. for i in range(0,np.size(m_table)-1)])
+        pdf = np.histogram(np.log10(virial),np.log10(m_table), density=True)[0]
+        #print("Field absorbers: ",np.size(halos)-np.size(f_ind))
+        return (mbin, pdf)
+
+    def plot_mass_hist(self, elem = "C", ion = 4, nmin=None, color="blue", ls="-"):
+        """Plot a histogram of the host halo masses for the absorber"""
+        (mbins, pdf) = self.mass_hist(nmin=nmin, elem=elem, ion=ion)
+        plt.semilogx(mbins,pdf,color=color, ls=ls,label=self.label)
+        #plt.legend(loc=1,ncol=3)
+        #plt.ylim(-0.03,2.8)
+        #plt.xlim(10,400)
+        plt.ylabel(r"Number density")
+        plt.xlabel(r"Mass ($M_\odot$ h$^{-1}$)")
+        #plt.xticks((10, 40, 100, 400), ("10","40","100","400"))
+        #save_figure(path.join(topdir,"cosmo_halos_feedback_z"+str(zz)))
+        #plt.clf()
 
     def get_contiguous_regions(self, elem="C", ion = 4, thresh = 50, relthresh = 1e-3):
         """
