@@ -256,10 +256,12 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         #print("Field absorbers: ",np.size(halos)-np.size(f_ind))
         return (mbin, pdf)
 
-    def plot_mass_hist(self, elem = "C", ion = 4, nmin=None, color="blue", ls="-"):
+    def plot_mass_hist(self, elem = "C", ion = 4, nmin=None, color="blue", ls="-", label=None):
         """Plot a histogram of the host halo masses for the absorber"""
+        if label == None:
+            label = self.label
         (mbins, pdf) = self.mass_hist(nmin=nmin, elem=elem, ion=ion)
-        plt.semilogx(mbins,pdf,color=color, ls=ls,label=self.label)
+        plt.semilogx(mbins,pdf,color=color, ls=ls,label=label)
         #plt.legend(loc=1,ncol=3)
         #plt.ylim(-0.03,2.8)
         #plt.xlim(10,400)
@@ -300,3 +302,34 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             zpos *= 1.*self.box/self.nbins
             contig[ii] = zpos
         return contig
+
+    def get_coliss_colden(self, elem, ion):
+        """Reload the collisionally ionised material fractions"""
+        colden_collis = {}
+        colden_collis[('C',4)] = np.array([0])
+        self._really_load_array((elem, ion), colden_collis, "colden_collis")
+        return colden_collis[(elem, ion)]
+
+    def plot_collisional_fraction(self, elem = "C", ion = 4, dlogW=0.5, minW=1e12, maxW=1e17, color="blue", ls="-", label=None):
+        """
+        Plot fraction of absorbers that are collisionally ionised as a function of column density.
+        """
+        if label == None:
+            label=self.label
+        cdens = np.sum(self.get_col_density(elem, ion), axis=1)
+        collis = self.get_coliss_colden(elem, ion)
+        cratio = np.sum(collis, axis=1) / cdens
+        W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
+        center = np.array([(W_table[i]+W_table[i+1])/2. for i in xrange(0,np.size(W_table)-1)])
+        fracs= np.zeros_like(center)
+        for ii in xrange(0,np.size(W_table)-1):
+            #Lines in this bin
+            ind = np.where(np.logical_and(cdens < W_table[ii+1],cdens > W_table[ii]))
+            if np.size(ind) > 0:
+                fracs[ii] = np.mean(cratio[ind])
+        print(np.mean(cratio))
+        plt.semilogx(center, fracs,ls=ls,color=color,label=label)
+        plt.ylabel(r"Fraction Collisionally Ionised")
+        plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
+        plt.ylim(0, 1)
+        #print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
