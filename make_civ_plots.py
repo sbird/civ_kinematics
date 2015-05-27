@@ -54,6 +54,18 @@ def do_civ_plots(name, ahalos):
     generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
     #generic_eq_width("HI", "H", 1, 1216, name, ahalos)
 
+def collis_dist(name, ahalos):
+    """Plot the collisional ionisation fractions"""
+    for ahalo in ahalos:
+        ahalo.plot_collisional_fraction()
+    plt.xlabel("r perp (kpc)")
+    plt.ylabel(r"Collisional ionisation fraction")
+    plt.ylim(0, 1.5)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_CIV_collisional"))
+    plt.clf()
+
+
 def CIV_eq_ratio(name, ahalos):
     """Carbon IV equivalent width ratio"""
     for ahalo in ahalos:
@@ -298,6 +310,8 @@ for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
 #Add Illustris
 illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "DLARperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
 aahalos.append(illhalo)
+
+collis_dist("feed", (aahalos[0],aahalos[2]))
 
 CIV_vel_offset("feed", [illhalo,])
 do_civ_plots("feed",aahalos)

@@ -100,13 +100,24 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     def get_sum_col_density(self,elem, ion):
         """Get the column density summed over some (finite) velocity range around the deepest absorption"""
         cd = self.get_col_density(elem, ion)
+        return self._get_sum_col_density(cd, elem, ion)
+
+    def get_sum_collis_col_density(self, elem, ion):
+        """Get the collisional column density summed over some (finite) velocity range around the deepest absorption"""
+        cd = self.get_colis_colden(elem, ion)
+        return self._get_sum_col_density(cd, elem, ion)
+
+    def _get_sum_col_density(self,cd, elem, ion):
+        """Get the column density summed over some (finite) velocity range around the deepest absorption"""
+        cdd = self.get_col_density(elem, ion)
         sumcd = np.zeros(self.NumLos)
         midpoint = self.NumLos/2
         for i in xrange(midpoint):
             #First rotate lines so that the strongest absorber is in the center.
+            cd1 = cdd[i, :]
+            maxx = np.where(cd1 == np.max(cd1))[0][0]
             c1 = cd[i, :]
             c2 = cd[i+midpoint, :]
-            maxx = np.where(c1 == np.max(c1))[0][0]
             rcd1 = np.roll(c1, self.nbins/2-maxx)
             rcd2 = np.roll(c2, self.nbins/2-maxx)
             binwd = self.velsize/self.dvbin
@@ -159,6 +170,13 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         #Don't need to divide by 1+z as lambda_X is already rest wavelength
         assert np.any(eq_width > 0)
         return eq_width
+
+    def get_colis_colden(self, elem="C", ion=4):
+        """Reload the collisionally ionised material fractions"""
+        colden_collis = {}
+        colden_collis[(elem,ion)] = np.array([0])
+        self._really_load_array((elem, ion), colden_collis, "colden_collis")
+        return colden_collis[(elem, ion)]
 
     def save_file(self):
         """Save a file including last time in star"""
@@ -251,6 +269,11 @@ class AggCIVPlot(object):
     def get_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
         cd = [qq.get_sum_col_density(elem, ion) for qq in self.snaps]
+        return self._get_aggregate(cd)
+
+    def get_collis_col_density(self, elem, ion):
+        """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
+        cd = [qq.get_sum_collis_col_density(elem, ion) for qq in self.snaps]
         return self._get_aggregate(cd)
 
     def get_offsets(self):
@@ -404,3 +427,24 @@ class AggCIVPlot(object):
         vir = self.snaps[0].virial_vel()
         halos = self.find_nearest_halo()
         return vel_offset/vir[halos]
+
+    def plot_collisional_fraction(self, elem = "C", ion = 4, dlogW=0.5, minW=1e12, maxW=1e17, color=None, ls="-", label=None):
+        """
+        Plot fraction of absorbers that are collisionally ionised as a function of column density.
+        """
+        if label == None:
+            label=self.label
+        if color == None:
+            color = self.color
+        cdens = self.get_col_density(elem, ion)
+        collis = self.get_collis_col_density(elem, ion)
+        cratio = collis / (cdens+0.01)
+        midpoint = self.NumLos/2  #self.nobs below
+        new_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
+        plt.plot(0,np.mean(cratio[:midpoint]),'o',color=color)
+        return self._plot_radial(cratio[midpoint:], color, ls, 0, new_radial_bins, label=label,line=True)
+        #plt.semilogx(center, fracs,ls=ls,color=color,label=label)
+        #plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
+        #plt.ylim(0, 1)
+        #print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
+
