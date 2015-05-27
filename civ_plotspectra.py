@@ -316,9 +316,10 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         """
         if label == None:
             label=self.label
-        cdens = np.sum(self.get_col_density(elem, ion), axis=1)
+        cdens = self.get_col_density(elem, ion)
         collis = self.get_coliss_colden(elem, ion)
-        cratio = np.sum(collis, axis=1) / cdens
+        cdens = np.sum(cdens, axis=1)
+        cratio = np.sum(collis, axis=1) / (cdens+0.01)
         W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in xrange(0,np.size(W_table)-1)])
         fracs= np.zeros_like(center)

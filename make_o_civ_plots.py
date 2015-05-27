@@ -126,8 +126,12 @@ def linear_cog_col(eqw, rwave, fosc):
 def do_halomass_plots(fosc):
     """Plot halo mass, distance to the halo and the relationship between eq. width and column density"""
     ahalos = {
-                    'I':CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75"),
                     4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25") }
+    #for (ll, ahalo) in ahalos.iteritems():
+    ahalos[4].plot_collisional_fraction(color=colors[4], ls=lss[4])
+    save_figure(path.join(outdir,"civ_collisional"))
+    plt.clf()
+    ahalos['I']=CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75")
     ahalos['I'].plot_eq_width_vs_col_den("C",4,1548)
     eqw = np.linspace(-3, 0.5,50)
     plt.semilogy(eqw, linear_cog_col(10**eqw, 1548, fosc), '-',color="black")
@@ -145,14 +149,14 @@ def do_halomass_plots(fosc):
     plt.legend(loc="upper right")
     save_figure(path.join(outdir,"civ_eqwvsdist"))
     plt.clf()
-    for (ll, ahalo) in ahalos.iteritems():
-        ahalo.plot_mass_hist("C",4,1548,color=colors[ll])
-    plt.legend(loc="upper right",ncol=1)
-    #plt.ylim(-0.03,2.8)
-    #plt.xlim(10,400)
+    ccc = {1e12: "yellow", 1e15:"red"}
+    for nmin in (1e12, 1e15):
+        nminstr = str(np.round(np.log10(nmin),1))
+        #for (ll, ahalo) in ahalos.iteritems():
+        ahalos['I'].plot_mass_hist(elem="C",ion=4,color=ccc[nmin], ls=lss['I'],nmin=nmin, label=ahalo.label+" "+nminstr)
+        plt.legend(loc="upper left",ncol=1)
     save_figure(path.join(outdir,"civ_halos_hist"))
     plt.clf()
-
 
 if __name__ == "__main__":
     #Plot eq. width vs column density and halo mass
