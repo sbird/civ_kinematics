@@ -126,9 +126,12 @@ def linear_cog_col(eqw, rwave, fosc):
 def do_halomass_plots(fosc):
     """Plot halo mass, distance to the halo and the relationship between eq. width and column density"""
     ahalos = {
-                    4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25") }
+                    4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25"),
+                    7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" 25")}
     #for (ll, ahalo) in ahalos.iteritems():
+    ahalos[7].plot_collisional_fraction(color=colors[7], ls=lss[7])
     ahalos[4].plot_collisional_fraction(color=colors[4], ls=lss[4])
+    plt.legend()
     save_figure(path.join(outdir,"civ_collisional"))
     plt.clf()
     ahalos['I']=CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75")

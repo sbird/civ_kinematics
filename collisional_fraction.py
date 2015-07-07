@@ -45,3 +45,8 @@ class CollisionalSpectra(sp.Spectra):
         self._save_multihash(self.colden, grp_grid)
         grp_grid = f.create_group("tau_collis")
         self._save_multihash(self.tau, grp_grid)
+
+if __name__ == "__main__":
+    cs = CollisionalSpectra(5,"/home/spb/data/Cosmo/Cosmo7_V6/L25n512/output/",None, None, savefile="rand_civ_spectra.hdf5")
+    c4collis = cs.get_col_density("C",4,force_recompute=True)
+    cs.save_file()
