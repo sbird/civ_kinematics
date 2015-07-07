@@ -26,7 +26,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
-            light = ps.spectra.units.light / 1e5
+            light = self.units.light / 1e5
             #lambda in Angstroms, dvbin in km/s,
             #so dl is in Angstrom
             dl = self.dvbin / light * line
@@ -51,7 +51,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in range(0,np.size(W_table)-1)])
         width =  np.array([W_table[i+1]-W_table[i] for i in range(0,np.size(W_table)-1)])
 
-        dX=ps.spectra.units.absorption_distance(self.box, self.red)
+        dX=self.units.absorption_distance(self.box, self.red)
         #equivalent width for each sightline
         eqw = self.equivalent_width(elem, ion, line)
         tot_lines = np.size(eqw)+self.discarded

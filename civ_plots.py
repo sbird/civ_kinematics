@@ -161,7 +161,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
-            light = ps.spectra.units.light / 1e5
+            light = self.units.light / 1e5
             #lambda in Angstroms, dvbin in km/s,
             #so dl is in Angstrom
             dl = self.dvbin / light * line
