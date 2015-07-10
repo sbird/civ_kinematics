@@ -5,6 +5,7 @@ import numpy as np
 import plot_spectra as ps
 import matplotlib.pyplot as plt
 import laststar
+import numexpr as ne
 
 def _get_means_binned(spectra, offsets, radial_bins,mean=True):
     """Get the means of some spectral quantity binned radially"""
@@ -185,6 +186,96 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     def load_savefile(self, savefile=None):
         laststar.LastStar.load_savefile(self,savefile)
 
+    def find_nearest_halo(self, elem="H", ion=1, thresh=50):
+        """Find the single most massive halos associated with absorption near a sightline, possibly via a subhalo."""
+        try:
+            return (self.spectra_halos, self.spectra_dists)
+        except AttributeError:
+            pass
+#             try:
+#                 self._load_spectra_halos()
+#                 return (self.spectra_halos, self.spectra_dists)
+#             except KeyError:
+#                 pass
+        self.load_halo()
+        zpos = self.get_contiguous_regions(elem=elem, ion=ion, thresh = thresh)
+        (halos, dists) = self.assign_to_halo(zpos=zpos, halo_radii=self.sub_radii, halo_cofm=self.sub_cofm)
+        self.spectra_halos = halos
+        self.spectra_dists = dists
+#         self._save_spectra_halos()
+        return (halos, dists)
+
+    def assign_to_halo(self, zpos, halo_radii, halo_cofm, maxdist = 400):
+        """
+        Overload assigning positions to halos. As CIV absorbers are usually outside the virial radius,
+        this is a bit complicated.
+
+        We choose to find halos that observers would associate with the absorber. Observers will
+        not be able to see subhalos, and will generally expect to find a bright galaxy within 100 kpc
+        of the absorber.
+
+        Thus look for the most massive halo within 170 kpc (physical), which is about a quasar virial radius.
+        """
+        dists = maxdist*np.ones_like(zpos)
+        halos = np.zeros_like(zpos, dtype=np.int)-1
+        #X axis first
+        indd = np.where(self.sub_mass > 1e8)
+        fhc = halo_cofm[indd,:][0]
+        red_mass = self.sub_mass[indd]
+        assert np.size(np.shape(fhc)) == 2
+        assert np.shape(fhc)[1] == 3
+        for ii in xrange(np.size(zpos)):
+            proj_pos = np.array(self.cofm[ii,:])
+            ax = self.axis[ii]-1
+            proj_pos[ax] = zpos[ii]
+            #Closest halo in units of halo virial radius
+            #Find all halos within maxdist, accounting for periodicity
+            box = self.box
+            dd = ne.evaluate("sum(where(abs(fhc - proj_pos) < box/2., fhc-proj_pos, box-abs(fhc - proj_pos))**2, axis=1)")
+            ind = np.where(dd < maxdist**2)
+            if np.size(ind) > 0:
+                max_mass = np.max(red_mass[ind])
+                i2 = np.where(red_mass == max_mass)
+                halos[ii] = indd[0][i2][0]
+                dists[ii] = np.sqrt(dd[i2][0])
+        return (halos, dists)
+
+    def get_contiguous_regions(self, elem="C", ion = 4, thresh = 50, relthresh = 1e-3):
+        """
+        Find the weighted z position of all CIV elements in a spectrum.
+        Here we want 50 km/s +- the deepest absorption.
+        Returns a list of lists. Each element in the outer list corresponds to a spectrum.
+        Each inner list is the list of weighted z positions of regions.
+        In this case the inner list will always have 1 element.
+        """
+        #Overload the thresh argument to actually be a velocity range
+        vrange = thresh
+        den = self.get_col_density(elem, ion)
+        contig = np.zeros(self.NumLos,dtype=np.float)
+        (roll, colden) = ps.spectra._get_rolled_spectra(den)
+        #deal with periodicity by making sure the deepest point is in the middle
+        for ii in xrange(self.NumLos):
+            # This is column density, not absorption, so we cannot
+            # use the line width to find the peak region.
+            lcolden = colden[ii,:]
+            if np.all(lcolden == 0):
+                contig[ii] = self.box/2
+                continue
+            maxx = np.where(np.max(lcolden) == lcolden)[0][0]
+            low = (maxx - vrange/self.dvbin)
+            high = (maxx + vrange/self.dvbin)
+            # Find weighted z position for absorber
+            nn = np.arange(self.nbins)[low:high]-roll[ii]
+            llcolden = lcolden[low:high]
+            zpos = ne.evaluate("sum(llcolden*nn)")
+            summ = ne.evaluate("sum(llcolden)")
+            #Make sure it refers to a valid position
+            zpos = (zpos / summ) % self.nbins
+            zpos *= 1.*self.box/self.nbins
+            contig[ii] = zpos
+        return contig
+
+
 class AggCIVPlot(object):
     """Class to compute various statistics specific to absorbers around something else, like DLAs or quasars.
        Aggregates over a varied redshift range.
@@ -263,8 +354,8 @@ class AggCIVPlot(object):
     def find_nearest_halo(self):
         """Find the nearest halo to the DLA sightline"""
         midpoint = self.NumLos/2
-        near_halos = [qq.find_nearest_halo()[:midpoint][0] for qq in self.snaps]
-        return self._get_aggregate(near_halos, multiplier=1)
+        near_halos = [qq.find_nearest_halo()[0] for qq in self.snaps]
+        return self._get_aggregate(near_halos, multiplier=1)[:midpoint]
 
     def get_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
@@ -427,6 +518,30 @@ class AggCIVPlot(object):
         vir = self.snaps[0].virial_vel()
         halos = self.find_nearest_halo()
         return vel_offset/vir[halos]
+
+    def plot_mass_hist(self, dm=0.3, color=None, ls="-"):
+        """
+        Compute a histogram of the host halo mass of each DLA spectrum.
+
+        Parameters:
+            dm - bin spacing
+
+        Returns:
+            (mbins, pdf) - Mass (binned in log) and corresponding PDF.
+        """
+        if color == None:
+            color = self.color
+        halos = self.find_nearest_halo()
+        f_ind = np.where(halos != -1)
+        #nlos = np.shape(vel_width)[0]
+        #print 'nlos = ',nlos
+        mass = self.snaps[0].sub_mass[halos[f_ind]]
+        m_table = 10**np.arange(np.log10(np.min(mass)+0.1), np.log10(np.max(mass)), dm)
+        mbin = np.array([(m_table[i]+m_table[i+1])/2. for i in range(0,np.size(m_table)-1)])
+        pdf = np.histogram(np.log10(mass),np.log10(m_table), density=True)[0]
+        plt.semilogx(mbin, pdf, color=color, ls=ls, label=self.label)
+        print("Field DLAs: ",np.size(halos)-np.size(f_ind))
+        return (mbin, pdf)
 
     def plot_collisional_fraction(self, elem = "C", ion = 4, dlogW=0.5, minW=1e12, maxW=1e17, color=None, ls="-", label=None):
         """

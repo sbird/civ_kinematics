@@ -66,6 +66,16 @@ def collis_dist(name, ahalos):
     save_figure(path.join(outdir,name+"_CIV_collisional"))
     plt.clf()
 
+def mass_hist(name, ahalos):
+    """Plot a histogram of halo masses"""
+    for ahalo in ahalos:
+        ahalo.plot_mass_hist()
+    plt.xlabel(r"Halo mass ($M_\odot$)")
+    plt.ylabel(r"PDF")
+    plt.ylim(0, 1.5)
+    plt.legend()
+    save_figure(path.join(outdir,name+"_CIV_mass_hist"))
+    plt.clf()
 
 def CIV_eq_ratio(name, ahalos):
     """Carbon IV equivalent width ratio"""
@@ -312,6 +322,7 @@ for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
 illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "DLARperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
 aahalos.append(illhalo)
 
+mass_hist("feed",(aahalos[0], aahalos[2]))
 collis_dist("feed", (aahalos[0],aahalos[2]))
 
 CIV_vel_offset("feed", [illhalo,])
