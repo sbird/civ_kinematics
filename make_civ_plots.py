@@ -46,6 +46,7 @@ def do_civ_plots(name, ahalos):
     """Make a bunch of plots"""
     CIV_eq_ratio(name, ahalos)
     generic_coverfrac("CIV", "C", 4, 1548, name, ahalos)
+    generic_coverfrac("CII", "C", 2, 1334, name, ahalos)
     generic_coverfrac("SiII", "Si", 2, 1526, name, ahalos)
     HI_coverfrac(name, ahalos)
     generic_eq_width("CII", "C", 2, 1334, name, ahalos)
