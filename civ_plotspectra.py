@@ -96,7 +96,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.xlabel(r"$W_{1548} (\AA)$")
         plt.ylabel(r"N$_\mathrm{CIV}$ (cm$^{2}$)")
 
-    def assign_to_halo(self, zpos, halo_radii, halo_cofm, maxdist = 170):
+    def assign_to_halo(self, zpos, halo_radii, halo_cofm, maxdist = 400):
         """
         Overload assigning positions to halos. As CIV absorbers are usually outside the virial radius,
         this is a bit complicated.
@@ -107,34 +107,38 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
 
         Thus look for the most massive halo within 170 kpc (physical), which is about a quasar virial radius.
         """
-        dists = np.zeros_like(zpos)
-        halos = np.zeros_like(zpos, dtype=np.int)
+        dists = 270*np.ones_like(zpos)
+        halos = np.zeros_like(zpos, dtype=np.int)-1
         #X axis first
+        indd = np.where(self.sub_mass > 1e8)
+        fhc = halo_cofm[indd,:][0]
+        red_mass = self.sub_mass[indd]
+        assert np.size(np.shape(fhc)) == 2
+        assert np.shape(fhc)[1] == 3
         for ii in xrange(np.size(zpos)):
             proj_pos = np.array(self.cofm[ii,:])
             ax = self.axis[ii]-1
             proj_pos[ax] = zpos[ii]
             #Closest halo in units of halo virial radius
-            indd = np.where(self.sub_mass > 0)
-            fhc = halo_cofm[indd,:][0]
-            assert np.size(np.shape(fhc)) == 2
-            assert np.shape(fhc)[1] == 3
-            dd = ne.evaluate("sum((fhc - proj_pos)**2,axis=1)")
+            #Find all halos within maxdist, accounting for periodicity
+            box = self.box
+            dd = ne.evaluate("sum(where(abs(fhc - proj_pos) < box/2., fhc-proj_pos, box-abs(fhc - proj_pos))**2, axis=1)")
             ind = np.where(dd < maxdist**2)
-            #No halo that close
-            if np.size(ind) == 0:
-                halos[ii] = -1
-                dists[ii] = 200
-                continue
-            #Minimal distance
-            ind = np.where(self.sub_mass[indd] == np.max(self.sub_mass[indd][ind]))
-            halos[ii] = indd[0][ind][0]
-            dists[ii] = np.sqrt(dd[ind][0])
+            if np.size(ind) > 0:
+                max_mass = np.max(red_mass[ind])
+                i2 = np.where(red_mass == max_mass)
+                halos[ii] = indd[0][i2][0]
+                dists[ii] = np.sqrt(dd[i2][0])
         return (halos, dists)
 
     def _save_spectra_halos(self):
         """Save the computed spectra and distances to the savefile."""
         f=h5py.File(self.savefile,'r+')
+        try:
+            del f["spectra"]["halos"]
+            del f["spectra"]["dist"]
+        except KeyError:
+            pass
         f["spectra"]["halos"] = self.spectra_halos
         f["spectra"]["dist"] = self.spectra_dists
         f.close()
@@ -159,7 +163,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             except KeyError:
                 pass
         zpos = self.get_contiguous_regions(elem=elem, ion=ion, thresh = thresh)
-        (halos, dists) = self.assign_to_halo(zpos, self.sub_radii, self.sub_cofm)
+        (halos, dists) = self.assign_to_halo(zpos=zpos, halo_radii=self.sub_radii, halo_cofm=self.sub_cofm)
         self.spectra_halos = halos
         self.spectra_dists = dists
         self._save_spectra_halos()
@@ -232,7 +236,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             sumcd[i] = np.sum(rcd1[self.nbins/2-binwd:self.nbins/2+binwd])
         return sumcd
 
-    def mass_hist(self, dm=0.5, nmin=None, elem="C", ion=4):
+    def mass_hist(self, dm=0.3, nmin=None, elem="C", ion=4):
         """
         Compute a histogram of host halo masses
 
