@@ -128,20 +128,7 @@ def do_halomass_plots(fosc):
     ahalos = {
                     4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25"),
                     7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" 25")}
-    #for (ll, ahalo) in ahalos.iteritems():
-    ahalos[7].plot_collisional_fraction(color=colors[7], ls=lss[7])
-    ahalos[4].plot_collisional_fraction(color=colors[4], ls=lss[4])
-    plt.legend()
-    save_figure(path.join(outdir,"civ_collisional"))
-    plt.clf()
     ahalos['I']=CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75")
-    ahalos['I'].plot_eq_width_vs_col_den("C",4,1548)
-    eqw = np.linspace(-3, 0.5,50)
-    plt.semilogy(eqw, linear_cog_col(10**eqw, 1548, fosc), '-',color="black")
-    plt.ylim(1e12,1e16)
-    plt.xlim(-2.5,0.5)
-    save_figure(path.join(outdir,"civ_eqwvscolden"))
-    plt.clf()
     for (ll, ahalo) in ahalos.iteritems():
         ahalo.plot_eqw_mass("C",4,1548,color=colors[ll])
     plt.legend(loc="upper left")
@@ -149,16 +136,29 @@ def do_halomass_plots(fosc):
     plt.clf()
     for (ll, ahalo) in ahalos.iteritems():
         ahalo.plot_eqw_dist("C",4,1548,color=colors[ll])
-    plt.legend(loc="upper right")
+    plt.legend(loc="lower right")
     save_figure(path.join(outdir,"civ_eqwvsdist"))
     plt.clf()
     ccc = {1e12: "yellow", 1e15:"red"}
-    for nmin in (1e12, 1e15):
-        nminstr = str(np.round(np.log10(nmin),1))
-        #for (ll, ahalo) in ahalos.iteritems():
-        ahalos['I'].plot_mass_hist(elem="C",ion=4,color=ccc[nmin], ls=lss['I'],nmin=nmin, label=ahalo.label+" "+nminstr)
-        plt.legend(loc="upper left",ncol=1)
+    for tag in ('I', 4, 7):
+        for nmin in (1e12, 1e15):
+            nminstr = str(np.round(np.log10(nmin),1))
+            #for (ll, ahalo) in ahalos.iteritems():
+            ahalos[tag].plot_mass_hist(elem="C",ion=4,color=ccc[nmin], ls=lss[tag],nmin=nmin, label=ahalos[tag].label+" "+nminstr)
+    plt.legend(loc="upper left",ncol=1)
     save_figure(path.join(outdir,"civ_halos_hist"))
+    plt.clf()
+    for ll in (4,7):
+        ahalos[ll].plot_collisional_fraction(color=colors[ll], ls=lss[ll])
+    plt.legend()
+    save_figure(path.join(outdir,"civ_collisional"))
+    plt.clf()
+    ahalos['I'].plot_eq_width_vs_col_den("C",4,1548)
+    eqw = np.linspace(-3, 0.5,50)
+    plt.semilogy(eqw, linear_cog_col(10**eqw, 1548, fosc), '-',color="black")
+    plt.ylim(1e12,1e16)
+    plt.xlim(-2.5,0.5)
+    save_figure(path.join(outdir,"civ_eqwvscolden"))
     plt.clf()
 
 if __name__ == "__main__":
