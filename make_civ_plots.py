@@ -16,7 +16,8 @@ from save_figure import save_figure
 
 np.seterr(divide='raise',invalid='raise')
 labels = {1:"HVEL", 2:"HVNOAGN", 3:"NOSN", 5:"MVEL", 7:"ILLUS 25", 9:"FAST 25", 4:"WARM 25",6:"LOAD", 'I':"ILLUS 75"}
-colors = {1:"purple", 2:"orange", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green",'I':"brown"}
+colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"#ca0020", 9:"#0571b0", 4:"#92c5de",6:"green",'I':"#f4a582",'S':"grey", 'VS':"brown"}
+#colors = {1:"purple", 2:"orange", 3:"green", 5:"yellow", 7:"blue", 9:"red", 4:"gold",6:"green",'I':"brown"}
 lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:":", 8:"-",9:"-.",'A':"--",  'S':"--",'VS':"-", 'I':"-"}
 
 outdir = path.join(myname.base, "civ_plots/")
