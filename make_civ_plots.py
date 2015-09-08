@@ -199,17 +199,19 @@ def rel_c_colden(ahalo):
 def hc_colden(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     """Plot the column densities for different CIV ions"""
     if 2 in ions:
-        ahalo.plot_colden(color="pink",elem="C",ion=2,label="CII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+        ahalo.plot_colden(color="deeppink",ls="-.",elem="C",ion=2,label="CII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     if 3 in ions:
-        ahalo.plot_colden(color="green",elem="C",ion=3, label="CIII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+        ahalo.plot_colden(color="green",ls="-.",elem="C",ion=3, label="CIII", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     if 4 in ions:
-        ahalo.plot_colden(color="grey",elem="C",ion=4,label="CIV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+        ahalo.plot_colden(color="grey",ls="--", elem="C",ion=4,label="CIV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     if 5 in ions:
-        ahalo.plot_colden(color="blue",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
+        ahalo.plot_colden(color="blue",ls=":",elem="C",ion=5, label="CV", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
     if -1 in ions:
         ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     plt.yscale('log')
+    plt.ylabel(r"Column Density (cm$^{-2}$)")
+    plt.xlabel(r"Distance from DLA (proper kpc)")
     plt.ylim(1e7, 1e17)
     plt.legend(loc='upper right', ncol=3)
     save_figure(path.join(outdir,name+"_C_colden"+ahalo.label.replace(" ","_")))

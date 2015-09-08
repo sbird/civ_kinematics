@@ -218,7 +218,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         plt.semilogx(center, uquart,ls=":",color=color)
         plt.semilogx(center, lquart, ls=":",color=color)
         print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
-        plt.ylabel(r"Distance (R$_\mathrm{vir}$)")
+        plt.ylabel(r"Distance (kpc)")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.xlim(minW,maxW)
 

@@ -127,8 +127,8 @@ def do_halomass_plots(fosc):
     """Plot halo mass, distance to the halo and the relationship between eq. width and column density"""
     ahalos = {
                     4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25"),
+#                    9:CIVPlottingSpectra(5, myname.get_name(9, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[9]+" 25"),
                     7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" 25")}
-    ahalos['I']=CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75")
     for (ll, ahalo) in ahalos.iteritems():
         ahalo.plot_eqw_mass("C",4,1548,color=colors[ll])
     plt.legend(loc="upper left")
@@ -136,9 +136,10 @@ def do_halomass_plots(fosc):
     plt.clf()
     for (ll, ahalo) in ahalos.iteritems():
         ahalo.plot_eqw_dist("C",4,1548,color=colors[ll])
-    plt.legend(loc="lower right")
+    plt.legend(loc="upper left")
     save_figure(path.join(outdir,"civ_eqwvsdist"))
     plt.clf()
+    ahalos['I']=CIVPlottingSpectra(68, path.expanduser("~/data/Illustris"), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels['I']+" 75")
     ccc = {1e12: "yellow", 1e15:"red"}
     for tag in ('I', 4, 7):
         for nmin in (1e12, 1e15):
@@ -172,6 +173,7 @@ if __name__ == "__main__":
     for s in sims:
         plot_cddf(s, 25)
     plot_dor_cddf()
+    plt.ylim(5e-17, 2e-12)
     plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_cddf"))
     plt.clf()
@@ -232,7 +234,7 @@ if __name__ == "__main__":
     plot_c12_omega_civ()
     plot_dor_omega_civ2()
     plot_simcoe_data()
-    plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
+    plt.ylabel(r"$\Omega_\mathrm{CIV}\, (10^{-8})$")
     plt.xlabel("z")
     plt.xlim(2, 4)
     plt.ylim(0.1, 10)
@@ -244,7 +246,7 @@ if __name__ == "__main__":
     plt.ylabel(r"$\Omega_\mathrm{CIV} (10^{-8})$")
     plt.xlabel("z")
     plt.xlim(2, 4)
-    plt.ylim(0.1, 10)
+    plt.ylim(0.3, 10)
     plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_omega_low"))
     plt.clf()
