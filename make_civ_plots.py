@@ -212,10 +212,46 @@ def hc_colden(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
         ahalo.plot_colden(color="brown",elem="C",ion=-1, label="Carbon", radial_bins = np.logspace(np.log10(7.5), np.log10(upper), 12))
     plt.yscale('log')
     plt.ylabel(r"Column Density (cm$^{-2}$)")
-    plt.xlabel(r"Distance from DLA (proper kpc)")
+    plt.xlabel(r"Perp. Distance from DLA (proper kpc)")
     plt.ylim(1e7, 1e17)
     plt.legend(loc='upper right', ncol=3)
     save_figure(path.join(outdir,name+"_C_colden"+ahalo.label.replace(" ","_")))
+    plt.clf()
+
+def hc_colden_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
+    """Plot the column densities for different CIV ions"""
+    if 2 in ions:
+        ahalo.plot_colden_par(color="deeppink",ls="-.",elem="C",ion=2,label="CII")
+    if 3 in ions:
+        ahalo.plot_colden_par(color="green",ls="-.",elem="C",ion=3, label="CIII")
+    if 4 in ions:
+        ahalo.plot_colden_par(color="grey",ls="--", elem="C",ion=4,label="CIV")
+    if 5 in ions:
+        ahalo.plot_colden_par(color="blue",ls=":",elem="C",ion=5, label="CV")
+    #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
+    if -1 in ions:
+        ahalo.plot_colden_par(color="brown",elem="C",ion=-1, label="Carbon")
+    plt.yscale('log')
+    plt.ylabel(r"Column Density (cm$^{-2}$)")
+    plt.xlabel(r"Velocity from DLA along sightline (kms$^{-1}$)")
+    plt.ylim(1e7, 1e17)
+    plt.legend(loc='upper right', ncol=3)
+    save_figure(path.join(outdir,name+"_C_colden_par"+ahalo.label.replace(" ","_")))
+    plt.clf()
+
+def hc_tau_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
+    """Plot the column densities for different CIV ions"""
+    if 2 in ions:
+        ahalo.plot_tau_par(color="deeppink",ls="-.",elem="C",ion=2,line=1334,label="CII")
+    if 4 in ions:
+        ahalo.plot_tau_par(color="grey",ls="--", elem="C",ion=4,line=1548,label="CIV")
+    #ahalo.plot_colden(color="black",elem="H",ion=1,label="HI")
+    plt.yscale('log')
+    plt.ylabel(r"Optical Depth")
+    plt.xlabel(r"Velocity from DLA (kms$^{-1}$)")
+    plt.ylim(0.1, 100)
+    plt.legend(loc='upper right', ncol=3)
+    save_figure(path.join(outdir,name+"_C_tau_par"+ahalo.label.replace(" ","_")))
     plt.clf()
 
 def qso_eq_width(ionname, elem, ion, line, name, ahalos):
@@ -342,8 +378,10 @@ plt.clf()
 
 #rel_c_colden(ahalo)
 hc_colden(aahalos[0])
-hc_colden(aahalos[-2])
-hc_colden(aahalos[-1])
+# hc_colden(aahalos[-2])
+# hc_colden(aahalos[-1])
+hc_colden_par(aahalos[0])
+hc_tau_par(aahalos[0])
 
 #Do redshift evolution
 # for nn in (7,4):

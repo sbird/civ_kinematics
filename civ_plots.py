@@ -143,7 +143,26 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(his == np.max(his))[0][0]
             rcivs = np.roll(civs, self.nbins/2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = np.fliplr(rcivs[self.nbins/2-binwd:self.nbins/2]) + rcivs[self.nbins/2:self.nbins/2+binwd]
+            sumcd[i] = rcivs[self.nbins/2:self.nbins/2-binwd+1:-1] + rcivs[self.nbins/2:self.nbins/2+binwd]
+        return sumcd
+
+    def get_tau_par(self, elem, ion, line):
+        """Get the column density along the sightline to the DLA"""
+        #Get the spectra through the DLA
+        midpoint = self.NumLos/2
+        metal = self.get_tau(elem,ion, line)[:midpoint]
+        HI = self.get_tau("H",1, 1215)[:midpoint]
+        binwd = self.velsize/self.dvbin
+        sumcd = np.zeros((midpoint, binwd))
+        #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
+        #First find largest HI density
+        for i in xrange(midpoint):
+            his = HI[i,:]
+            civs = metal[i,:]
+            maxx = np.where(his == np.max(his))[0][0]
+            rcivs = np.roll(civs, self.nbins/2-maxx)
+            #Now compute summed columns +- N km/s from the center
+            sumcd[i] = rcivs[self.nbins/2:self.nbins/2-binwd+1:-1] + rcivs[self.nbins/2:self.nbins/2+binwd]
         return sumcd
 
     def get_most_recent(self, elem="C", ion=4):
@@ -389,7 +408,18 @@ class AggCIVPlot(object):
         for jj in xrange(np.shape(cd)[0]):
             agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
             total += np.size(self.agg_map[jj])
-        assert total == np.size(agg)
+        assert total == np.shape(agg)[0]
+        return agg
+
+    def get_tau_par(self, elem, ion, line):
+        """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
+        cd = [qq.get_tau_par(elem, ion, line) for qq in self.snaps]
+        agg = np.empty((np.sum(self.nlines), self.velsize/self.dvbin),dtype=cd[0].dtype)
+        total = 0
+        for jj in xrange(np.shape(cd)[0]):
+            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
+            total += np.size(self.agg_map[jj])
+        assert total == np.shape(agg)[0]
         return agg
 
     def get_collis_col_density(self, elem, ion):
@@ -466,9 +496,23 @@ class AggCIVPlot(object):
         CIV = self.get_col_density_par(elem,ion)
         #Find DLA position
         mean_civ = np.mean(CIV, axis=0)
-        vbins = np.arange(0, self.velsize, self.dvbin)
+        vbins = np.arange(0, self.velsize, self.dvbin)[:-1]
         if label == None:
             label=self.label
+        assert np.size(vbins) == np.size(mean_civ)
+        plt.plot(vbins, mean_civ, color=color, ls=ls, label=label)
+        return (vbins, mean_civ)
+
+    def plot_tau_par(self, color=None, ls="-",elem="C", ion=4, line=1548, label=None):
+        """Column density plot along an averaged DLA sightline"""
+        #Get the spectra through the DLA
+        CIV = self.get_tau_par(elem,ion,line)
+        #Find DLA position
+        mean_civ = np.mean(CIV, axis=0)
+        vbins = np.arange(0, self.velsize, self.dvbin)[:-1]
+        if label == None:
+            label=self.label
+        assert np.size(vbins) == np.size(mean_civ)
         plt.plot(vbins, mean_civ, color=color, ls=ls, label=label)
         return (vbins, mean_civ)
 
