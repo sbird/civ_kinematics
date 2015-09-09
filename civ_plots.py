@@ -551,16 +551,6 @@ class AggCIVPlot(object):
         plt.bar(lbins[:-1], hist*12./norm, width=20, color=color, label=self.label, alpha=0.4)
         return (lbins, hist)
 
-    def find_vir_ratio(self, elem="C", ion=4,line=1548, eq_thresh=0.2):
-        """The ratio between the virial velocity and the velocity offset. This is not helpful."""
-        vel_offset = self.get_vel_offset(elem, ion, line)
-        eq_width = self.equivalent_width(elem, ion, line)
-        midpoint = self.NumLos/2
-        ind = np.where(eq_width[midpoint:] > eq_thresh)
-        vir = self.snaps[0].virial_vel()
-        halos = self.find_nearest_halo()
-        return vel_offset/vir[halos]
-
     def plot_mass_hist(self, dm=0.3, color=None, ls="-"):
         """
         Compute a histogram of the host halo mass of each DLA spectrum.
@@ -585,7 +575,7 @@ class AggCIVPlot(object):
         print("Field DLAs: ",np.size(halos)-np.size(f_ind))
         return (mbin, pdf)
 
-    def plot_collisional_fraction(self, elem = "C", ion = 4, dlogW=0.5, minW=1e12, maxW=1e17, color=None, ls="-", label=None):
+    def plot_collisional_fraction(self, elem = "C", ion = 4, color=None, ls="-", label=None):
         """
         Plot fraction of absorbers that are collisionally ionised as a function of column density.
         """
