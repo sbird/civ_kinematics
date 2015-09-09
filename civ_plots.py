@@ -127,6 +127,25 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             sumcd[i+midpoint] = np.sum(rcd2[self.nbins/2-binwd:self.nbins/2+binwd])
         return sumcd
 
+    def get_colden_par(self, elem, ion):
+        """Get the column density along the sightline to the DLA"""
+        #Get the spectra through the DLA
+        midpoint = self.NumLos/2
+        metal = self.get_col_density(elem,ion)[:midpoint]
+        HI = self.get_col_density("H",1)[:midpoint]
+        binwd = self.velsize/self.dvbin
+        sumcd = np.zeros((midpoint, binwd))
+        #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
+        #First find largest HI density
+        for i in xrange(midpoint):
+            his = HI[i,:]
+            civs = metal[i,:]
+            maxx = np.where(his == np.max(his))[0][0]
+            rcivs = np.roll(civs, self.nbins/2-maxx)
+            #Now compute summed columns +- N km/s from the center
+            sumcd[i] = np.fliplr(rcivs[self.nbins/2-binwd:self.nbins/2]) + rcivs[self.nbins/2:self.nbins/2+binwd]
+        return sumcd
+
     def get_most_recent(self, elem="C", ion=4):
         """Get for every sightline the most recent enrichment event"""
         midpoint = self.NumLos/2
@@ -362,6 +381,17 @@ class AggCIVPlot(object):
         cd = [qq.get_sum_col_density(elem, ion) for qq in self.snaps]
         return self._get_aggregate(cd)
 
+    def get_col_density_par(self, elem, ion):
+        """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
+        cd = [qq.get_colden_par(elem, ion) for qq in self.snaps]
+        agg = np.empty((np.sum(self.nlines), self.velsize/self.dvbin),dtype=cd[0].dtype)
+        total = 0
+        for jj in xrange(np.shape(cd)[0]):
+            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
+            total += np.size(self.agg_map[jj])
+        assert total == np.size(agg)
+        return agg
+
     def get_collis_col_density(self, elem, ion):
         """Get the optical depths by aggregating over the different snapshots according to the correct density distribution"""
         cd = [qq.get_sum_collis_col_density(elem, ion) for qq in self.snaps]
@@ -429,6 +459,18 @@ class AggCIVPlot(object):
         midpoint = self.NumLos/2
         CIV = self.get_col_density(elem,ion)[midpoint:]
         return self._plot_radial(CIV, color, ls, ls2, radial_bins, label=label,mean=False)
+
+    def plot_colden_par(self, color=None, ls="-",elem="C", ion=4, label=None):
+        """Column density plot along an averaged DLA sightline"""
+        #Get the spectra through the DLA
+        CIV = self.get_col_density_par(elem,ion)
+        #Find DLA position
+        mean_civ = np.mean(CIV, axis=0)
+        vbins = np.arange(0, self.velsize, self.dvbin)
+        if label == None:
+            label=self.label
+        plt.plot(vbins, mean_civ, color=color, ls=ls, label=label)
+        return (vbins, mean_civ)
 
     def plot_covering_fraction(self, eq_thresh = 0.2, color=None, ls="-", ls2 = "--", elem="C", ion=4, line=1548, radial_bins = None, label=None):
         """
