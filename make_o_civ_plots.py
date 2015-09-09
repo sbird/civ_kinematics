@@ -15,10 +15,11 @@ outdir = path.join(myname.base, "civ_plots/")
 print "Plots at ",outdir
 
 #colors = {0:"pink", 1:"purple", 2:"cyan", 3:"green", 4:"gold", 5:"red", 7:"blue", 6:"grey", 8:"pink", 9:"orange", 'A':"grey", 'S':"red"}
-lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:":", 8:"-",9:"-.",'A':"--",  'S':"--",'VS':"-", 'I':"-"}
+lss = {0:"--",1:":", 2:":",3:"-.", 4:"-.", 5:"-",6:"--",7:":", 8:"-",9:"--",'A':"--",  'S':"--",'VS':"-", 'I':"-"}
 #labels = {0:"ILLUS",1:"HVEL", 2:"HVNOAGN",3:"NOSN", 4:"WMNOAGN", 5:"MVEL",6:"METAL",7:"DEF", 8:"RICH",9:"FAST", 'A':"MOM", 'S':"SMALL"}
 labels = {1:"HVEL", 2:"HVNOAGN", 3:"NOSN", 5:"MVEL", 7:"ILLUS", 9:"FAST", 4:"WARM",'S':"SMALL", 'VS':"VSMALL",6:"LOAD", 'I':"ILLUS"}
-colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"#ca0020", 9:"#0571b0", 4:"#92c5de",6:"green",'I':"#f4a582",'S':"grey", 'VS':"brown"}
+colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"#ca0020", 9:"#92c5de", 4:"#0571b0",6:"green",'I':"#f4a582",'S':"grey", 'VS':"brown"}
+#colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"#348ABD", 9:"#7A68A6", 4:"#467821",'S':"grey", 'VS':"brown",6:"green", 'I':"#CF4457"}
 #colors = {1:"purple", 2:"grey", 3:"green", 5:"yellow", 7:"blue", 9:"magenta", 4:"green",'S':"grey", 'VS':"brown",6:"green", 'I':"brown"}
 snaps = {1:4, 2:3.5, 3:3, 4:2.5, 5:2, 6:1.5, 7:1, 8:0.5, 9:0.3, 10:0, 901:6, 902:5, 903:4.5, 54:4.0, 57:3.5, 60:3.0, 64:2.5, 68:2.0}
 def plot_line_density(sim, box, base, sss):
