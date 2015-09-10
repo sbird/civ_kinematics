@@ -11,8 +11,9 @@ import h5py
 from save_figure import save_figure
 
 class CIVPlottingSpectra(ps.PlottingSpectra):
-    def equivalent_width(self, elem, ion, line, limit=600.):
-        """Calculate the equivalent width of a line in Angstroms, limited to 600 km/s on either side of the strongest absorber."""
+    def equivalent_width(self, elem, ion, line, limit=400.):
+        """Calculate the equivalent width of a line in Angstroms, limited to 400 km/s on either side of the strongest absorber.
+        Range will be extended if there is still absorbtion and truncated if there is a doublet."""
         tau = self.get_tau(elem, ion, line)
         eq_width = np.zeros(self.NumLos)
         for i in xrange(self.NumLos):
@@ -20,9 +21,15 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             t1 = tau[i, :]
             maxx = np.where(t1 == np.max(t1))[0][0]
             rtau1 = np.roll(t1, self.nbins/2-maxx)
-            binwd = limit/self.dvbin
+            lbinwd = limit/self.dvbin
+            #Extend as needed
+            while np.max(rtau1[self.nbins/2-(lbinwd +100/self.dvbin):self.nbins/2 - lbinwd]) >= 0.1:
+                lbinwd += 100/self.dvbin
+            #Doublet is cut off
+            if line == 1548:
+                ubinwd = 250/self.dvbin
             #Now compute eq. width for absorption +- N km/s from the center
-            rtau1 = rtau1[self.nbins/2-binwd:self.nbins/2+binwd]
+            rtau1 = rtau1[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
@@ -33,6 +40,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             eq_width[i] = np.trapz(-np.expm1(-rtau1),dx=dl)
         #Don't need to divide by 1+z as lambda_X is already rest wavelength
         assert np.any(eq_width > 0)
+        assert np.all(eq_width >= 0)
         return eq_width
 
     def eq_width_dist(self,elem = "C", ion = 4, line=1548, dlogW=0.2, minW=0.005, maxW=5., moment=False):
