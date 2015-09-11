@@ -181,22 +181,41 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         return np.array(ages)
 
     def equivalent_width(self, elem, ion, line):
-        """Calculate the equivalent width of a line in Angstroms"""
+        """Calculate the equivalent width of a line in Angstroms. Algorithm (to match Rubin 2015) is:
+            1. Start with +- 400 km/s (the mean HI interval of your spectra) on either side of the largest tau_HI
+            within +-600 km/s of the strongest metal line in the DLA sightline.
+            2. Extend asymmetrically in 100 km/s sections if mean(tau_HI) > 0.1 over that 100 km/s segment (which will pick up blatant DLAs).
+            This gives me an HI interval similar to the thing you find by eye.
+            3. Within this interval find the strongest metal line in the CGM sightline.
+            4. Sum +-300 km/s from this line to get EW CIV. This number should make little difference: you set the limits smaller than the HI interval because there was no absorption there, so going for larger limits shouldn't change the EW much. Going too small though is not what you did, since you extended the region so that it covered the whole absorber. So we want something largeish here.
+            5. Extend *lower only* (because of the doublet) in 100 km/s sections if mean(CIV) > 0.1 over that 100 km/s segment. This may not be worth the effort since 300-> 400 doesn't really make a difference.
+            """
         tau = self.get_tau(elem, ion, line)
+        tau_HI = self.get_tau("H", 1, 1215)
         eq_width = np.zeros(self.NumLos)
         midpoint = self.NumLos/2
-#         for (t1, t2, e1, e2) in zip(tau[0:midpoint, :], tau[midpoint:,:], eq_width[0:midpoint], eq_width[midpoint:]):
+        lbinwd = int(self.velsize/self.dvbin)
+        ubinwd = lbinwd
+        #Doublets cannot be integrated past the doublet midpoint
+        if line == 1548:
+            ubinwd = int(250/self.dvbin)
         for i in xrange(midpoint):
             #First rotate lines so that the DLA is in the center.
             t1 = tau[i, :]
             t2 = tau[i+midpoint, :]
+            #We use the metal line for the midpoint, as the DLA redshift is given by the metals
             maxx = np.where(t1 == np.max(t1))[0][0]
             rtau1 = np.roll(t1, self.nbins/2-maxx)
             rtau2 = np.roll(t2, self.nbins/2-maxx)
-            binwd = self.velsize/self.dvbin
+            #These are strong lines so it does not make much difference
+            rtau1 = rtau1[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
+            #Now the tricky part: make HI centered on DLA
+            rtauHI = np.roll(tau_HI[i+midpoint, :], self.nbins/2-maxx)
+            #Now find the interval with 'significant HI absorption'
+            maxion = self._get_strong_cgm_in_HI_vel(rtau2, rtauHI)
+            rtau2 = np.roll(rtau2, self.nbins/2-maxion)
             #Now compute eq. width for absorption +- N km/s from the center
-            rtau1 = rtau1[self.nbins/2-binwd:self.nbins/2+binwd]
-            rtau2 = rtau2[self.nbins/2-binwd:self.nbins/2+binwd]
+            rtau2 = rtau2[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
@@ -209,6 +228,50 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         #Don't need to divide by 1+z as lambda_X is already rest wavelength
         assert np.any(eq_width > 0)
         return eq_width
+
+    def _get_strong_cgm_in_HI_vel(self, rtauCGM, rtauHI):
+        """Get the position of the strongest CGM line within a search interval centered on an HI absorber.
+        Start with cgm tua centere on DLA"""
+        #Now find the interval with 'significant HI absorption'
+        (newcent, HIlbinwd, HIubinwd) = self._get_HI_vel_int(rtauHI)
+        #Adjust CGM to match (this is so we don't get edge effects)
+        rtauCGM = np.roll(rtauCGM, self.nbins/2-newcent)
+        #Find the strongest metal line in this interval and center on it
+        rtauCGMa = rtauCGM[self.nbins/2-HIlbinwd:self.nbins/2+HIubinwd]
+        #Note the center is now at newcent, not self.nbins/2 because we need the unrotated frame
+        maxion = np.where(rtauCGMa == np.max(rtauCGMa))[0][0]+newcent-HIlbinwd
+        if maxion < 0:
+            maxion += self.nbins
+        if maxion > self.nbins:
+            maxion -= self.nbins
+        return maxion
+
+    def _get_HI_vel_int(self, rtauHI):
+        """Find the HI velocity interval and center from a single spectrum, centered on DLA"""
+        #Find strongest HI in CGM sightline close to absorber
+        initsearch = int(600/self.dvbin)
+        irHI = rtauHI[self.nbins/2-initsearch:self.nbins/2+initsearch]
+        newcent = np.where(irHI == np.max(irHI))[0][0]+self.nbins/2-initsearch
+        #Adjust HI so this is now the center
+        rtauHI2 = np.roll(rtauHI, self.nbins/2-newcent)
+        #Now compute eq. width for absorption +- N km/s from the center
+        #Extend the search radius if there is still strong HI absorption at the edges
+        #First lower bound
+        HIubinwd = int(round(400./self.dvbin))
+        HIstep = int(round(100/self.dvbin))
+        HIlbinwd = HIubinwd
+        while np.mean(rtauHI2[self.nbins/2-(HIlbinwd + HIstep):self.nbins/2 - HIlbinwd]) >= 0.1:
+            HIlbinwd += HIstep
+            if HIlbinwd+HIstep > self.nbins/2:
+                HIlbinwd = self.nbins/2
+                break
+        #Then upper bound
+        while np.mean(rtauHI2[self.nbins/2+HIubinwd:self.nbins/2 + HIubinwd+HIstep]) >= 0.1:
+            HIubinwd += HIstep
+            if HIubinwd +HIstep >= self.nbins/2:
+                HIubinwd = self.nbins/2-1
+                break
+        return (newcent, HIlbinwd, HIubinwd)
 
     def get_colis_colden(self, elem="C", ion=4):
         """Reload the collisionally ionised material fractions"""
@@ -319,7 +382,7 @@ class AggCIVPlot(object):
        Aggregates over a varied redshift range.
        First half of sightlines assumed to go through objects.
     """
-    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True, velsize = 600):
+    def __init__(self,nums, base, redfile, numlos=None, color=None, res=5., savefile="grid_spectra_DLA.hdf5",label="", ls="-", spec_res = 8.,load_halo=True, velsize = 300):
         #self.def_radial_bins = np.logspace(np.log10(7.5), np.log10(270), 12)
         #As is observed
         self.def_radial_bins = np.array([5,100,200,275])
