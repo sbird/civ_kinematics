@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Class to generate CIV spectra that are nearby to a DLA"""
 
+from __future__ import print_function
 import numpy as np
 import math
 import spectra
@@ -23,7 +24,7 @@ class QSONrSpectra(spectra.Spectra):
         self.npart=f["Header"].attrs["NumPart_Total"]+2**32*f["Header"].attrs["NumPart_Total_HighWord"]
         f.close()
         (_, self.sub_mass, cofm, self.sub_radii) = halocat.find_wanted_halos(num, base, self.hubble*min_mass/1e10)
-        print np.size(self.sub_mass)," halos found"
+        print(np.size(self.sub_mass)," halos found")
         if np.size(self.sub_mass) == 0:
             raise ValueError
         self.sub_cofm = np.array(cofm, dtype=np.float64)
@@ -90,7 +91,7 @@ def do_stuff(snap, path, redmin, redmax):
         halo.get_density("H",1)
         halo.save_file()
     except ValueError:
-        print "No halos found, nothing done"
+        print("No halos found, nothing done")
 
 if __name__ == "__main__":
     #For small boxes

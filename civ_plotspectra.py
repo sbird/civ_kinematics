@@ -260,7 +260,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         else:
             f_ind = np.where(np.logical_and(halos != -1, self.get_sum_col_density(elem, ion,600) > nmin))
         #nlos = np.shape(vel_width)[0]
-        #print 'nlos = ',nlos
+        #print('nlos = ',nlos)
         virial = self.sub_mass[halos[f_ind]]
         m_table = 10**np.arange(np.log10(np.min(virial)+0.1), np.log10(np.max(virial)), dm)
         mbin = np.array([(m_table[i]+m_table[i+1])/2. for i in range(0,np.size(m_table)-1)])

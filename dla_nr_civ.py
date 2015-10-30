@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Class to generate CIV spectra that are nearby to a DLA"""
 
+from __future__ import print_function
 import numpy as np
 import math
 import spectra
@@ -88,12 +89,12 @@ def do_stuff(snap, base):
     halo.get_tau("C",2,1334, force_recompute=False)
     halo.get_tau("Si",2,1526, force_recompute=False)
     halo.get_tau("Si",4,1393, force_recompute=False)
-    print "Got taus"
+    print("Got taus")
     for ion in (2,3,4,5): #xrange(1,8):
         halo.get_density("C",ion)
     halo.get_density("C",-1)
     halo.get_density("H",1)
-    print "Got density"
+    print("Got density")
     halo.save_file()
 
 if __name__ == "__main__":

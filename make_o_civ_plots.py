@@ -1,4 +1,5 @@
 """Make various plots of the total CIV abundance"""
+from __future__ import print_function
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from save_figure import save_figure
 
 outdir = path.join(myname.base, "civ_plots/")
 
-print "Plots at ",outdir
+print("Plots at ",outdir)
 
 #colors = {0:"pink", 1:"purple", 2:"cyan", 3:"green", 4:"gold", 5:"red", 7:"blue", 6:"grey", 8:"pink", 9:"orange", 'A':"grey", 'S':"red"}
 lss = {0:"--",1:":", 2:":",3:"-.", 4:"-.", 5:"-",6:"--",7:":", 8:"-",9:"--",'A':"--",  'S':"--",'VS':"-", 'I':"-"}

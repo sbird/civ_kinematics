@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Module to plot statistics for the CIV absorbers around DLAs"""
 
+from __future__ import print_function
 import numpy as np
 import plot_spectra as ps
 import matplotlib.pyplot as plt
@@ -432,7 +433,7 @@ class AggCIVPlot(object):
         assert np.sum(nlines) == npairs
         #nlines now contains the number of sightlines we want from each snapshot
         if np.size(nlines > 1):
-            print "Number of lines from each snapshot: ",nlines*2
+            print("Number of lines from each snapshot: ",nlines*2)
         #Check that we have enough data to get this sample
         for i in xrange(np.size(self.snaps)):
             assert nlines[i] <= self.snaps[i].NumLos/2
@@ -673,7 +674,7 @@ class AggCIVPlot(object):
         halos = self.find_nearest_halo()
         f_ind = np.where(halos != -1)
         #nlos = np.shape(vel_width)[0]
-        #print 'nlos = ',nlos
+        #print('nlos = ',nlos)
         mass = self.snaps[0].sub_mass[halos[f_ind]]
         m_table = 10**np.arange(np.log10(np.min(mass)+0.1), np.log10(np.max(mass)), dm)
         mbin = np.array([(m_table[i]+m_table[i+1])/2. for i in range(0,np.size(m_table)-1)])

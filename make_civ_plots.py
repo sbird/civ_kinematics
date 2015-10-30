@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Make some plots of the velocity widths from the cosmo runs"""
 
+from __future__ import print_function
 import matplotlib
 matplotlib.use('PDF')
 
@@ -22,7 +23,7 @@ lss = {0:"--",1:":", 2:":",3:"-.", 4:"--", 5:"-",6:"--",7:":", 8:"-",9:"-.",'A':
 
 outdir = path.join(myname.base, "civ_plots/")
 
-print "Plots at ",outdir
+print("Plots at ",outdir)
 
 def plot_den(hspec, ax, num, voff = 0, elem="C", ion=4, color="blue"):
     """Plot density"""

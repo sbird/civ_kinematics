@@ -1,5 +1,6 @@
 """Small module to split out the computation of gas particle 'age'; ie, last time it was in a star"""
 
+from __future__ import print_function
 import spectra
 import numpy as np
 import h5py
@@ -44,11 +45,11 @@ class LastStar(spectra.Spectra):
             #Metal density of stuff that has been in a star should be much higher than stuff which hasn't been in a star
             #Otherwise we have problems.
             if np.any(withouttracers):
-                print "Metal density in a star ",np.mean(age[withouttracers])
+                print("Metal density in a star ",np.mean(age[withouttracers]))
                 #It is not allowed to set individual elements of arrays selected in this complex way, so we must create a new array of
                 #the multiplication factor.
             if np.size(withtracers) > 0:
-                print "metal density not in star ",np.mean(age[withtracers])
+                print("metal density not in star ",np.mean(age[withtracers]))
                 lastfactor = np.array([np.max(np.abs(laststar[np.where(tracerparents == pid)])) for pid in part_ids[withtracers]])
                 age = age[withtracers] * lastfactor
                 pos = pos[withtracers]
