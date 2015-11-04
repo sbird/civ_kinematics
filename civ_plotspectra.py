@@ -9,6 +9,10 @@ import line_data
 import numexpr as ne
 import h5py
 from save_figure import save_figure
+try:
+    xrange(1)
+except NameError:
+    xrange = range
 
 class CIVPlottingSpectra(ps.PlottingSpectra):
     def equivalent_width(self, elem, ion, line, limit=400.):
@@ -20,16 +24,17 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             #First rotate lines so that the DLA is in the center.
             t1 = tau[i, :]
             maxx = np.where(t1 == np.max(t1))[0][0]
-            rtau1 = np.roll(t1, self.nbins/2-maxx)
+            mdbn = int(self.nbins/2)
+            rtau1 = np.roll(t1, mdbn-maxx)
             lbinwd = limit/self.dvbin
             #Extend as needed
-            while np.max(rtau1[self.nbins/2-(lbinwd +100/self.dvbin):self.nbins/2 - lbinwd]) >= 0.1:
-                lbinwd += 100/self.dvbin
+            while np.max(rtau1[mdbn-(lbinwd +int(100/self.dvbin)):mdbn - lbinwd]) >= 0.1:
+                lbinwd += int(100/self.dvbin)
             #Doublet is cut off
             if line == 1548:
-                ubinwd = 250/self.dvbin
+                ubinwd = int(250/self.dvbin)
             #Now compute eq. width for absorption +- N km/s from the center
-            rtau1 = rtau1[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
+            rtau1 = rtau1[mdbn-lbinwd:mdbn+ubinwd]
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
@@ -241,7 +246,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             rcd1 = np.roll(c1, self.nbins/2-maxx)
             binwd = limit/self.dvbin
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = np.sum(rcd1[self.nbins/2-binwd:self.nbins/2+binwd])
+            sumcd[i] = np.sum(rcd1[int(self.nbins/2-binwd):int(self.nbins/2+binwd)])
         return sumcd
 
     def mass_hist(self, dm=0.3, nmin=None, elem="C", ion=4):
@@ -302,8 +307,8 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             # use the line width to find the peak region.
             lcolden = colden[ii,:]
             maxx = np.where(np.max(lcolden) == lcolden)[0][0]
-            low = (maxx - vrange/self.dvbin)
-            high = (maxx + vrange/self.dvbin)
+            low = int(maxx - vrange/self.dvbin)
+            high = int(maxx + vrange/self.dvbin)
             # Find weighted z position for absorber
             nn = np.arange(self.nbins)[low:high]-roll[ii]
             llcolden = lcolden[low:high]
