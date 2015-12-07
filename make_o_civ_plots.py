@@ -10,6 +10,10 @@ from civ_data import *
 from civ_plotspectra import CIVPlottingSpectra
 import line_data
 from save_figure import save_figure
+try:
+    xrange(1)
+except NameError:
+    xrange = range
 
 outdir = path.join(myname.base, "civ_plots/")
 
@@ -91,7 +95,7 @@ def weight(zrange, maxz, minz):
 def get_snap_cddf(snap, base):
     """Get the cddf from one snapshot"""
     ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
-    return ahalo.column_density_function("C", 4, minN=11.5,maxN=15.5, line=False, close=50.)
+    return ahalo.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
 
 def plot_cddf(sim, box):
     """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
@@ -105,8 +109,9 @@ def plot_cddf(sim, box):
     base = myname.get_name(sim, box=box)
     cddfs = [get_snap_cddf(snap, base) for snap in snaps]
     #Idiom for unpacking a list
-    NHI = np.mean(zip(*cddfs)[0],axis=0)
-    f_Nsnaps = np.array(zip(*cddfs)[1])
+    (NHI_snaps, f_Nsnaps) = zip(*cddfs)
+    NHI = np.mean(NHI_snaps,axis=0)
+    f_Nsnaps = np.array(f_Nsnaps)
     f_N = np.sum([f_Nsnaps[i,:]*weights[i] for i in xrange(np.size(weights))],axis=0)
     assert np.shape(NHI) == np.shape(f_N)
     plt.loglog(NHI,f_N,color=colors[sim], label=labels[sim]+" "+str(box), ls=lss[sim])
