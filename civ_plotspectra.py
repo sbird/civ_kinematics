@@ -120,7 +120,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
 
         Thus look for the most massive halo within 170 kpc (physical), which is about a quasar virial radius.
         """
-        dists = 270*np.ones_like(zpos)
+        dists = -1*np.ones_like(zpos)
         halos = np.zeros_like(zpos, dtype=np.int)-1
         #X axis first
         indd = np.where(self.sub_mass > 1e8)
@@ -165,26 +165,27 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         finally:
             f.close()
 
-    def find_nearest_halo(self, elem="C", ion=4, thresh=50):
+    def find_nearest_halo(self, elem="C", ion=4, thresh=50, maxdist=400):
         """Find the single most massive halos associated with absorption near a sightline, possibly via a subhalo."""
         try:
             return (self.spectra_halos, self.spectra_dists)
         except AttributeError:
+            pass
             try:
                 self._load_spectra_halos()
                 return (self.spectra_halos, self.spectra_dists)
             except KeyError:
                 pass
         zpos = self.get_contiguous_regions(elem=elem, ion=ion, thresh = thresh)
-        (halos, dists) = self.assign_to_halo(zpos=zpos, halo_radii=self.sub_radii, halo_cofm=self.sub_cofm)
+        (halos, dists) = self.assign_to_halo(zpos=zpos, halo_radii=self.sub_radii, halo_cofm=self.sub_cofm, maxdist=maxdist)
         self.spectra_halos = halos
         self.spectra_dists = dists
         self._save_spectra_halos()
         return (halos, dists)
 
-    def plot_eqw_mass(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
+    def plot_eqw_mass(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue", maxdist=400):
         """Plot median halo mass for given equivalent width bins"""
-        (halos,dists) = self.find_nearest_halo(elem,ion, 50)
+        (halos,dists) = self.find_nearest_halo(elem,ion, thresh=50, maxdist=maxdist)
         eqw = np.sum(self.get_col_density(elem,ion),axis=1)
         W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in xrange(0,np.size(W_table)-1)])
@@ -200,18 +201,19 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
                 medians[ii] = np.median(self.sub_mass[halos[assoc][ind]])
                 uquart[ii] = np.percentile(self.sub_mass[halos[assoc][ind]],75)
                 lquart[ii] = np.percentile(self.sub_mass[halos[assoc][ind]],25)
-        plt.loglog(center, medians,ls="-",color=color,label=self.label)
-        plt.loglog(center, uquart,ls=":",color=color)
-        plt.loglog(center, lquart, ls=":",color=color)
+        iii = np.where(medians > 2)
+        plt.loglog(center[iii], medians[iii],ls="-",color=color,label=self.label)
+        plt.loglog(center[iii], uquart[iii],ls=":",color=color)
+        plt.loglog(center[iii], lquart[iii], ls=":",color=color)
         plt.ylabel(r"Mass ($M_\odot$ h$^{-1}$)")
         #plt.xlabel(r"$W_\mathrm{1548} (\AA )$")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
         plt.ylim(1e9,1e13)
         print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
 
-    def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue"):
+    def plot_eqw_dist(self, elem = "C", ion = 4, line=1548, dlogW=0.5, minW=1e12, maxW=1e17, color="blue", maxdist=400):
         """Plot median distance from halo in terms of virial radius as a function of column density (misnamed function!)"""
-        (halos,dists) = self.find_nearest_halo(elem,ion, 50)
+        (halos,dists) = self.find_nearest_halo(elem,ion, thresh=50,maxdist=maxdist)
         eqw = np.sum(self.get_col_density(elem,ion),axis=1)
         W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in xrange(0,np.size(W_table)-1)])
@@ -227,9 +229,10 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
                 medians[ii] = np.median(dists[assoc][ind])
                 uquart[ii] = np.percentile(dists[assoc][ind],75)
                 lquart[ii] = np.percentile(dists[assoc][ind],25)
-        plt.semilogx(center,medians, color=color,label=self.label)
-        plt.semilogx(center, uquart,ls=":",color=color)
-        plt.semilogx(center, lquart, ls=":",color=color)
+        iii = np.where(medians > 2)
+        plt.semilogx(center[iii],medians[iii], color=color,label=self.label)
+        plt.semilogx(center[iii], uquart[iii],ls=":",color=color)
+        plt.semilogx(center[iii], lquart[iii], ls=":",color=color)
         print("Fraction with no halo: ",1-np.size(assoc)/1./np.size(halos))
         plt.ylabel(r"Distance (kpc)")
         plt.xlabel(r"N$_\mathrm{CIV}$ (cm$^{-2}$)")
