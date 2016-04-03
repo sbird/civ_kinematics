@@ -57,7 +57,7 @@ class DLANrSpectra(laststar.LastStar):
         phi = 2*math.pi*np.random.random_sample(num)
         rr = np.empty_like(phi)
         total = 0
-        for ii in xrange(np.size(hists)-1):
+        for ii in range(np.size(hists)-1):
             #How many sightlines in this bin?
             #The proportion from the observed survey, but at least 1 and no more
             #than we have left in the bag
@@ -82,7 +82,7 @@ class DLANrSpectra(laststar.LastStar):
 
 def do_stuff(snap, base):
     """Make lines"""
-    reds = {5:(1.,2.25), 4:(2.25, 5.)}
+    reds = {5:(1.,2.25), 4:(2.25, 2.75), 3:(2.75,5)}
     halo = DLANrSpectra(snap,base,4000, reds[snap][0], reds[snap][1])
     halo.get_tau("C",4,1548, force_recompute=False)
     halo.get_tau("H",1,1215, force_recompute=False)
@@ -104,5 +104,6 @@ if __name__ == "__main__":
 #     do_stuff(5, simbase)
     for ss in (4, 7, 9):
         simbase = myname.get_name(ss, box=25)
-        do_stuff(5, simbase)
+        do_stuff(3, simbase)
         do_stuff(4, simbase)
+        do_stuff(5, simbase)
