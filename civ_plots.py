@@ -7,6 +7,10 @@ import plot_spectra as ps
 import matplotlib.pyplot as plt
 import laststar
 import numexpr as ne
+try:
+    xrange(1)
+except NameError:
+    xrange = range
 
 def _get_means_binned(spectra, offsets, radial_bins,mean=True):
     """Get the means of some spectral quantity binned radially"""
@@ -64,7 +68,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
     """Class to add some methods to PlottingSpectra which are useful for spectra around objects."""
     def get_offsets(self):
         """Get the offsets of each line in proper kpc from its partner"""
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         axisdiff = np.array([(self.cofm[ii,self.axis[ii]-1] - self.cofm[midpoint+ii,self.axis[ii]-1])**2 for ii in xrange(midpoint)])
         offsets = np.sqrt(np.sum((self.cofm[:midpoint,:] - self.cofm[midpoint:,:])**2,axis=1) - axisdiff)
         offsets *= self.atime/self.hubble
@@ -113,28 +117,28 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         """Get the column density summed over some (finite) velocity range around the deepest absorption"""
         cdd = self.get_col_density(elem, ion)
         sumcd = np.zeros(self.NumLos)
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         for i in xrange(midpoint):
             #First rotate lines so that the strongest absorber is in the center.
             cd1 = cdd[i, :]
             maxx = np.where(cd1 == np.max(cd1))[0][0]
             c1 = cd[i, :]
             c2 = cd[i+midpoint, :]
-            rcd1 = np.roll(c1, self.nbins/2-maxx)
-            rcd2 = np.roll(c2, self.nbins/2-maxx)
-            binwd = self.velsize/self.dvbin
+            rcd1 = np.roll(c1, self.nbins//2-maxx)
+            rcd2 = np.roll(c2, self.nbins//2-maxx)
+            binwd = self.velsize//self.dvbin
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = np.sum(rcd1[self.nbins/2-binwd:self.nbins/2+binwd])
-            sumcd[i+midpoint] = np.sum(rcd2[self.nbins/2-binwd:self.nbins/2+binwd])
+            sumcd[i] = np.sum(rcd1[self.nbins//2-binwd:self.nbins//2+binwd])
+            sumcd[i+midpoint] = np.sum(rcd2[self.nbins//2-binwd:self.nbins//2+binwd])
         return sumcd
 
     def get_colden_par(self, elem, ion):
         """Get the column density along the sightline to the DLA"""
         #Get the spectra through the DLA
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         metal = self.get_col_density(elem,ion)[:midpoint]
         HI = self.get_col_density("H",1)[:midpoint]
-        binwd = self.velsize/self.dvbin
+        binwd = self.velsize//self.dvbin
         sumcd = np.zeros((midpoint, binwd))
         #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
         #First find largest HI density
@@ -142,18 +146,18 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             his = HI[i,:]
             civs = metal[i,:]
             maxx = np.where(his == np.max(his))[0][0]
-            rcivs = np.roll(civs, self.nbins/2-maxx)
+            rcivs = np.roll(civs, self.nbins//2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = rcivs[self.nbins/2:self.nbins/2-binwd+1:-1] + rcivs[self.nbins/2:self.nbins/2+binwd]
+            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd+1:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
         return sumcd
 
     def get_tau_par(self, elem, ion, line):
         """Get the column density along the sightline to the DLA"""
         #Get the spectra through the DLA
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         metal = self.get_tau(elem,ion, line)[:midpoint]
         HI = self.get_tau("H",1, 1215)[:midpoint]
-        binwd = self.velsize/self.dvbin
+        binwd = self.velsize//self.dvbin
         sumcd = np.zeros((midpoint, binwd))
         #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
         #First find largest HI density
@@ -161,14 +165,14 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             his = HI[i,:]
             civs = metal[i,:]
             maxx = np.where(his == np.max(his))[0][0]
-            rcivs = np.roll(civs, self.nbins/2-maxx)
+            rcivs = np.roll(civs, self.nbins//2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = rcivs[self.nbins/2:self.nbins/2-binwd+1:-1] + rcivs[self.nbins/2:self.nbins/2+binwd]
+            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd+1:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
         return sumcd
 
     def get_most_recent(self, elem="C", ion=4):
         """Get for every sightline the most recent enrichment event"""
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         colden = self.get_col_density(elem, ion)
         age = self.get_age(elem, ion)
         ages = []
@@ -194,9 +198,10 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         tau = self.get_tau(elem, ion, line)
         tau_HI = self.get_tau("H", 1, 1215)
         eq_width = np.zeros(self.NumLos)
-        midpoint = self.NumLos/2
+        midpoint = int(self.NumLos/2)
         lbinwd = int(self.velsize/self.dvbin)
         ubinwd = lbinwd
+        midbin = int(self.nbins/2)
         #Doublets cannot be integrated past the doublet midpoint
         if line == 1548:
             ubinwd = int(250/self.dvbin)
@@ -206,17 +211,17 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             t2 = tau[i+midpoint, :]
             #We use the metal line for the midpoint, as the DLA redshift is given by the metals
             maxx = np.where(t1 == np.max(t1))[0][0]
-            rtau1 = np.roll(t1, self.nbins/2-maxx)
-            rtau2 = np.roll(t2, self.nbins/2-maxx)
+            rtau1 = np.roll(t1, midbin-maxx)
+            rtau2 = np.roll(t2, midbin-maxx)
             #These are strong lines so it does not make much difference
-            rtau1 = rtau1[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
+            rtau1 = rtau1[midbin-lbinwd:midbin+ubinwd]
             #Now the tricky part: make HI centered on DLA
-            rtauHI = np.roll(tau_HI[i+midpoint, :], self.nbins/2-maxx)
+            rtauHI = np.roll(tau_HI[i+midpoint, :], midbin-maxx)
             #Now find the interval with 'significant HI absorption'
             maxion = self._get_strong_cgm_in_HI_vel(rtau2, rtauHI)
-            rtau2 = np.roll(rtau2, self.nbins/2-maxion)
+            rtau2 = np.roll(rtau2, midbin-maxion)
             #Now compute eq. width for absorption +- N km/s from the center
-            rtau2 = rtau2[self.nbins/2-lbinwd:self.nbins/2+ubinwd]
+            rtau2 = rtau2[midbin-lbinwd:midbin+ubinwd]
             #1 bin in wavelength: δλ =  λ . v / c
             #λ here is the rest wavelength of the line.
             #speed of light in km /s
@@ -236,9 +241,9 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         #Now find the interval with 'significant HI absorption'
         (newcent, HIlbinwd, HIubinwd) = self._get_HI_vel_int(rtauHI)
         #Adjust CGM to match (this is so we don't get edge effects)
-        rtauCGM = np.roll(rtauCGM, self.nbins/2-newcent)
+        rtauCGM = np.roll(rtauCGM, self.nbins//2-newcent)
         #Find the strongest metal line in this interval and center on it
-        rtauCGMa = rtauCGM[self.nbins/2-HIlbinwd:self.nbins/2+HIubinwd]
+        rtauCGMa = rtauCGM[self.nbins//2-HIlbinwd:self.nbins//2+HIubinwd]
         #Note the center is now at newcent, not self.nbins/2 because we need the unrotated frame
         maxion = np.where(rtauCGMa == np.max(rtauCGMa))[0][0]+newcent-HIlbinwd
         if maxion < 0:
@@ -251,26 +256,27 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         """Find the HI velocity interval and center from a single spectrum, centered on DLA"""
         #Find strongest HI in CGM sightline close to absorber
         initsearch = int(600/self.dvbin)
-        irHI = rtauHI[self.nbins/2-initsearch:self.nbins/2+initsearch]
-        newcent = np.where(irHI == np.max(irHI))[0][0]+self.nbins/2-initsearch
+        midbin = int(self.nbins/2)
+        irHI = rtauHI[midbin-initsearch:midbin+initsearch]
+        newcent = np.where(irHI == np.max(irHI))[0][0]+midbin-initsearch
         #Adjust HI so this is now the center
-        rtauHI2 = np.roll(rtauHI, self.nbins/2-newcent)
+        rtauHI2 = np.roll(rtauHI, midbin-newcent)
         #Now compute eq. width for absorption +- N km/s from the center
         #Extend the search radius if there is still strong HI absorption at the edges
         #First lower bound
         HIubinwd = int(round(400./self.dvbin))
         HIstep = int(round(100/self.dvbin))
         HIlbinwd = HIubinwd
-        while np.mean(rtauHI2[self.nbins/2-(HIlbinwd + HIstep):self.nbins/2 - HIlbinwd]) >= 0.1:
+        while np.mean(rtauHI2[midbin-(HIlbinwd + HIstep):midbin - HIlbinwd]) >= 0.1:
             HIlbinwd += HIstep
-            if HIlbinwd+HIstep > self.nbins/2:
-                HIlbinwd = self.nbins/2
+            if HIlbinwd+HIstep > midbin:
+                HIlbinwd = midbin
                 break
         #Then upper bound
-        while np.mean(rtauHI2[self.nbins/2+HIubinwd:self.nbins/2 + HIubinwd+HIstep]) >= 0.1:
+        while np.mean(rtauHI2[midbin+HIubinwd:midbin + HIubinwd+HIstep]) >= 0.1:
             HIubinwd += HIstep
-            if HIubinwd +HIstep >= self.nbins/2:
-                HIubinwd = self.nbins/2-1
+            if HIubinwd +HIstep >= midbin:
+                HIubinwd = midbin-1
                 break
         return (newcent, HIlbinwd, HIubinwd)
 
@@ -425,7 +431,7 @@ class AggCIVPlot(object):
         We are sampling *pairs*, so the number of sightlines will be double npairs. """
         weights = self.get_redshift_weights()
         assert np.abs(np.sum(weights)-1.) < 1e-4
-
+        npairs = int(npairs)
         nlines = np.floor(weights * npairs).astype(np.int)
         #Assign any extra to early bins
         leftover = npairs - np.sum(nlines)
@@ -433,11 +439,11 @@ class AggCIVPlot(object):
         assert np.sum(nlines) == npairs
         #nlines now contains the number of sightlines we want from each snapshot
         if np.size(nlines > 1):
-            print("Number of lines from each snapshot: ",nlines*2)
+            print("Number of lines from each snapshot: ",[qq.red for qq in self.snaps],nlines*2)
         #Check that we have enough data to get this sample
         for i in xrange(np.size(self.snaps)):
             assert nlines[i] <= self.snaps[i].NumLos/2
-        agg_map = [ np.random.choice(self.snaps[i].NumLos/2, size=nlines[i], replace=False) for i in xrange(np.size(nlines))]
+        agg_map = [ np.random.choice(int(self.snaps[i].NumLos/2), size=nlines[i], replace=False) for i in xrange(np.size(nlines))]
         return (nlines, agg_map)
 
     def _get_aggregate(self, unaggregated, multiplier=2):
@@ -448,7 +454,7 @@ class AggCIVPlot(object):
         for mm in xrange(multiplier):
             assert total == np.sum(self.nlines)*mm
             for jj in xrange(np.shape(unaggregated)[0]):
-                agg[total:total+np.size(self.agg_map[jj])]= unaggregated[jj][mm*self.snaps[jj].NumLos/2+self.agg_map[jj]]
+                agg[total:total+np.size(self.agg_map[jj])]= unaggregated[jj][mm*self.snaps[jj].NumLos//2+self.agg_map[jj]]
                 total += np.size(self.agg_map[jj])
         assert total == np.size(agg)
         return agg
@@ -467,7 +473,7 @@ class AggCIVPlot(object):
     def get_col_density_par(self, elem, ion):
         """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
         cd = [qq.get_colden_par(elem, ion) for qq in self.snaps]
-        agg = np.empty((np.sum(self.nlines), self.velsize/self.dvbin),dtype=cd[0].dtype)
+        agg = np.empty((np.sum(self.nlines), self.velsize//self.dvbin),dtype=cd[0].dtype)
         total = 0
         for jj in xrange(np.shape(cd)[0]):
             agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
@@ -478,7 +484,7 @@ class AggCIVPlot(object):
     def get_tau_par(self, elem, ion, line):
         """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
         cd = [qq.get_tau_par(elem, ion, line) for qq in self.snaps]
-        agg = np.empty((np.sum(self.nlines), self.velsize/self.dvbin),dtype=cd[0].dtype)
+        agg = np.empty((np.sum(self.nlines), self.velsize//self.dvbin),dtype=cd[0].dtype)
         total = 0
         for jj in xrange(np.shape(cd)[0]):
             agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
@@ -535,7 +541,7 @@ class AggCIVPlot(object):
         if color == None:
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         ratio = eq_width[midpoint:]/(eq_width[0:midpoint]+1e-5)
         return self._plot_radial(ratio, color, ls, None, radial_bins,mean=False)
 
@@ -550,7 +556,7 @@ class AggCIVPlot(object):
 
     def plot_colden(self, color=None, ls="-",ls2="--", elem="C", ion=4, radial_bins = None, label=None):
         """Column density plot"""
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         CIV = self.get_col_density(elem,ion)[midpoint:]
         return self._plot_radial(CIV, color, ls, ls2, radial_bins, label=label,mean=False)
 
@@ -587,7 +593,7 @@ class AggCIVPlot(object):
         if color == None:
             color=self.color
         eq_width = self.equivalent_width(elem, ion, line)
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         assert np.shape(eq_width) == (self.NumLos,)
         covering = np.zeros_like(eq_width[midpoint:])
         covering[np.where(eq_width[midpoint:] > eq_thresh)] = 1
@@ -601,7 +607,7 @@ class AggCIVPlot(object):
         if color == None:
             color=self.color
         cdensity = self.get_col_density(elem, ion)
-        midpoint = self.NumLos/2
+        midpoint = self.NumLos//2
         covering = np.zeros_like(cdensity[midpoint:])
         covering[np.where(cdensity[midpoint:] > cd_thresh)] = 1
         return self._plot_radial(covering, color, ls, "--", radial_bins, label=label,line=False)
@@ -631,7 +637,7 @@ class AggCIVPlot(object):
             color=self.color
 #         eq_width = self.equivalent_width(elem, ion, line)+self._get_errors(self.NumLos, elem, ion)
         eq_width = self.equivalent_width(elem, ion, line)
-        midpoint = self.NumLos/2  #self.nobs below
+        midpoint = self.NumLos//2  #self.nobs below
         yerr = _generate_errors(eq_width[:midpoint], np.zeros(midpoint), np.array([-1,1]), self.NumLos/2.,1000)
         plt.errorbar([0,], np.mean(eq_width[:midpoint]), yerr=yerr, color=color, fmt='s')
         return self._plot_radial(eq_width[midpoint:], color, ls, ls2, radial_bins, label=label,line=False)
