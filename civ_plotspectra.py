@@ -26,7 +26,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             maxx = np.where(t1 == np.max(t1))[0][0]
             mdbn = int(self.nbins/2)
             rtau1 = np.roll(t1, mdbn-maxx)
-            lbinwd = limit/self.dvbin
+            lbinwd = int(limit/self.dvbin)
             #Extend as needed
             while np.max(rtau1[mdbn-(lbinwd +int(100/self.dvbin)):mdbn - lbinwd]) >= 0.1:
                 lbinwd += int(100/self.dvbin)
@@ -246,10 +246,10 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             #First rotate lines so that the strongest absorber is in the center.
             c1 = cd[i, :]
             maxx = np.where(c1 == np.max(c1))[0][0]
-            rcd1 = np.roll(c1, self.nbins/2-maxx)
-            binwd = limit/self.dvbin
+            rcd1 = np.roll(c1, self.nbins//2-maxx)
+            binwd = int(limit/self.dvbin)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = np.sum(rcd1[int(self.nbins/2-binwd):int(self.nbins/2+binwd)])
+            sumcd[i] = np.sum(rcd1[self.nbins//2-binwd:self.nbins//2+binwd])
         return sumcd
 
     def mass_hist(self, dm=0.3, nmin=None, elem="C", ion=4):
