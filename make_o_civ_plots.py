@@ -129,18 +129,38 @@ def linear_cog_col(eqw, rwave, fosc):
     """
     return 1.13e20 * eqw / (rwave**2 * fosc)
 
+def collisonal_plot():
+    """Plot the collisional fraction as a function of column density"""
+    ahalosz2 = {
+                    4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" z=2"),
+                    9:CIVPlottingSpectra(5, myname.get_name(9, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[9]+" z=2"),
+                    7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" z=2")}
+    l3 = {4:"--", 7:"-", 9:"-."}
+    for ll in (4,7,9):
+        ahalosz2[ll].plot_collisional_fraction(color=colors[ll], ls=l3[ll])
+    ahalos = {
+                    4:CIVPlottingSpectra(3, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" z=3"),
+                    9:CIVPlottingSpectra(3, myname.get_name(9, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[9]+" z=3"),
+                    7:CIVPlottingSpectra(3, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" z=3")}
+    for ll in (4,7,9):
+        ahalos[ll].plot_collisional_fraction(color=colors[ll], ls=lss[ll])
+    plt.ylim(0,0.8)
+    plt.legend(loc=0)
+    save_figure(path.join(outdir,"civ_collisional_zz"))
+    plt.clf()
+
 def do_halomass_plots(fosc):
     """Plot halo mass, distance to the halo and the relationship between eq. width and column density"""
     ahalos = {
                     4:CIVPlottingSpectra(5, myname.get_name(4, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[4]+" 25"),
-#                    9:CIVPlottingSpectra(5, myname.get_name(9, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[9]+" 25"),
+                   9:CIVPlottingSpectra(5, myname.get_name(9, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[9]+" 25"),
                     7:CIVPlottingSpectra(5, myname.get_name(7, box=25), None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[7]+" 25")}
-    for (ll, ahalo) in ahalos.iteritems():
+    for (ll, ahalo) in ahalos.items():
         ahalo.plot_eqw_mass("C",4,1548,color=colors[ll])
     plt.legend(loc="upper left")
     save_figure(path.join(outdir,"civ_eqwvsmass"))
     plt.clf()
-    for (ll, ahalo) in ahalos.iteritems():
+    for (ll, ahalo) in ahalos.items():
         ahalo.plot_eqw_dist("C",4,1548,color=colors[ll])
     plt.legend(loc="upper left")
     save_figure(path.join(outdir,"civ_eqwvsdist"))
@@ -154,11 +174,6 @@ def do_halomass_plots(fosc):
             ahalos[tag].plot_mass_hist(elem="C",ion=4,color=ccc[nmin], ls=lss[tag],nmin=nmin, label=ahalos[tag].label+" "+nminstr)
     plt.legend(loc="upper left",ncol=1)
     save_figure(path.join(outdir,"civ_halos_hist"))
-    plt.clf()
-    for ll in (4,7):
-        ahalos[ll].plot_collisional_fraction(color=colors[ll], ls=lss[ll])
-    plt.legend()
-    save_figure(path.join(outdir,"civ_collisional"))
     plt.clf()
     ahalos['I'].plot_eq_width_vs_col_den("C",4,1548)
     eqw = np.linspace(-3, 0.5,50)
