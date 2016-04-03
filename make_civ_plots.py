@@ -355,7 +355,7 @@ aahalos = []
 #ahalos = [ahalo,]
 for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
     base = myname.get_name(ss, box=25)
-    halo = ps.AggCIVPlot((4,5), base, numlos=14000, color=colors[ss], redfile = "DLARperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.,load_halo=False)
+    halo = ps.AggCIVPlot((3,4,5), base, numlos=14000, color=colors[ss], redfile = "DLARperpred.txt", savefile="nr_dla_spectra.hdf5", label=labels[ss], spec_res = 50.,load_halo=False)
     aahalos.append(halo)
 
 #Add Illustris
@@ -378,12 +378,12 @@ plt.clf()
 #C_ionic_eq_width("ion",aahalos[-2])
 
 #rel_c_colden(ahalo)
-hc_colden(aahalos[0])
+for aa in aahalos:
+    hc_colden(aa)
 # hc_colden(aahalos[-2])
 # hc_colden(aahalos[-1])
 hc_colden_par(aahalos[0])
 hc_tau_par(aahalos[0])
-
 #Do redshift evolution
 # for nn in (7,4):
 #     name = myname.get_name(nn, box=25)
