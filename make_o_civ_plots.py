@@ -59,6 +59,7 @@ def plot_line_density(sim, box, base, sss):
     plt.semilogy(reds, om_civ_low, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     plt.figure(4)
     plt.semilogy(reds, lciv03, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
+    np.savetxt("lciv_06_"+str(sim)+"_"+str(box)+".txt",np.hstack(reds, lciv))
 
 def plot_eq_width(sim, snap, box):
     """Plot the CIV eq. width density function"""
@@ -74,7 +75,8 @@ def plot_eq_width(sim, snap, box):
     ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,label=labels[sim]+" "+str(box),load_halo=False)
     #ahalo.plot_cddf("C", 4, minN=12, maxN=15., color=colors[sim], moment=False)
     #plt.figure(2)
-    ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim], ls=lss[sim])
+    (W,f_W) = ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim], ls=lss[sim])
+    np.savetxt("eq_width_"+str(sim)+"_"+str(box)+"_"+str(snap)+".txt",np.hstack(W, f_W))
 
 def calc_dodor_red(txtfile):
     """Calculate the redshift distribution of the D'Odorico 2010 CIV measurement."""
@@ -102,7 +104,7 @@ def plot_cddf(sim, box):
     #Load weights
     weights = calc_dodor_red("reddodorico.txt")
     #Which snapshots to weight
-    if box == 25:
+    if box == 25 or 7.5:
         snaps = (5,4,3,2)
     if box == 75:
         snaps = (68,64,60,57)
@@ -119,6 +121,7 @@ def plot_cddf(sim, box):
     ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
     plt.xlim(10**12, 10**15)
+    np.savetxt("civ_cddf_"+str(sim)+"_"+str(box)+".txt",np.hstack(NHI, f_N))
 
 def linear_cog_col(eqw, rwave, fosc):
     """Plot the column density expected from the equivalent width, assuming we are in the linear regime of the curve of growth.
@@ -194,10 +197,19 @@ if __name__ == "__main__":
     for s in sims:
         plot_cddf(s, 25)
     plot_dor_cddf()
-    plt.ylim(5e-17, 2e-12)
+    plt.ylim(5e-19, 2e-12)
+    plt.xlim(1e12,1e16)
     plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_cddf"))
     plt.clf()
+    plot_cddf(7,25)
+    plot_cddf(7,7.5)
+    plt.ylim(5e-19, 2e-12)
+    plt.xlim(1e12,1e16)
+    plt.legend(loc="lower left")
+    save_figure(path.join(outdir,"civ_cddf_resolution"))
+    plt.clf()
+    raise Exception
     #z=2 eq. width cddf
     plot_eq_width('I', 68, 75)
     for s in sims:

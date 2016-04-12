@@ -82,6 +82,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         ax.set_xlabel(r"$W_{1548} (\AA)$")
         ax.set_ylabel(r"$f(W_{1548}) (\AA^{-1})$")
         plt.xlim(minW, maxW)
+        return (W,f_W)
 
     def line_density_dist(self, thresh=0.6, elem = "C", ion = 4, line=1548):
         """
