@@ -9,9 +9,9 @@ import scipy
 import scipy.integrate
 import myname
 import randspectra as rs
-# from civ_data import *
+import civ_data
+import subfindhdf
 from civ_plotspectra import CIVPlottingSpectra
-# import line_data
 from save_figure import save_figure
 try:
     xrange(1)
@@ -47,7 +47,7 @@ def plot_voigt_cddf(sim, box=25, snap=5):
     ax=plt.gca()
     ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
-    plt.xlim(10**12, 10**15)
+    plt.xlim(10**11, 10**16)
     plt.legend(loc=0)
 
 def plot_resolution_cddf(snap=3):
@@ -65,6 +65,9 @@ def plot_resolution_cddf(snap=3):
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
     plt.xlim(10**12, 10**15)
     plt.legend(loc=0)
+    ax=plt.gca()
+    ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
+    ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
 
 def plot_UVB_cddf(box=25, snap=5):
     """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
@@ -86,6 +89,9 @@ def plot_UVB_cddf(box=25, snap=5):
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
     plt.xlim(10**12, 10**15)
     plt.legend(loc=0)
+    ax=plt.gca()
+    ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
+    ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
 
 def abs_dist_int(zz):
     """Absorption distance integration kernel."""
@@ -124,16 +130,53 @@ def plot_compare_others_cddf(sim=4):
     """Compare our results for the CIV cddf to those of other people, Ali Rahmati and Ben Oppenheimer.
     Because they just do it at z=2, use only one snapshot."""
     base = myname.get_name(sim, box=25)
+    (NHI_opp, cddf_opp) = load_oppenheimer()
+    plt.loglog(NHI_opp,cddf_opp,color="grey", label="Oppenheimer+2012", ls="-")
     ahalo = CIVPlottingSpectra(5, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
     (NHI, cddf) = ahalo.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
     plt.loglog(NHI,cddf,color=colors[4], label=labels[4], ls=lss[4])
     (NHI_rah, cddf_rah) = load_rahmati()
-    plt.loglog(NHI_rah,cddf_rah,color="brown", label="EAGLE", ls="-")
-    (NHI_opp, cddf_opp) = load_oppenheimer()
-    plt.loglog(NHI_opp,cddf_opp,color="grey", label="Oppenheimer+2012", ls="--")
+    plt.loglog(NHI_rah,cddf_rah,color="brown", label="EAGLE", ls="--")
+    civ_data.plot_dor_cddf()
     plt.legend(loc=0)
+    plt.xlim(1e12,5e15)
+    ax=plt.gca()
+    ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
+    ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
+
+def plot_stellar_mass_function(sim, snap=5):
+    """Plot the galaxy stellar mass function for a snapshot."""
+    base = myname.get_name(sim, box=25)
+#     ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=True)
+    subs=subfindhdf.SubFindHDF5(base, snap)
+    stellar_mass = subs.get_grp("GroupMassType")[:,4]*1e10/0.7
+    #Could also use subhalo stellar mass: they are similar
+    #stellar_mass = subs.get_sub("SubhaloMassType")[:,4]
+    bins = np.logspace(6,11)
+    dlogM = np.diff(np.log10(bins[:2]))
+    volume = (25/0.7)**3
+    (gsmf,sm) = np.histogram(stellar_mass, bins=bins)
+    sm = (sm[1:]+sm[:-1])/2.
+    assert np.size(sm) == np.size(gsmf)
+    gsmf = gsmf/volume/dlogM
+    plt.loglog(sm, gsmf, color=colors[sim], ls=lss[sim], label=labels[sim])
+
+def do_stellar_mass_plot(snap=5):
+    """Plot the galaxy stellar mass function."""
+    for sim in (4,7,9):
+        plot_stellar_mass_function(sim, snap)
+    plt.legend(loc=0)
+    #This is from the MNRAS machine-readable table in http://arxiv.org/abs/1101.2867 z=2-2.5 bin.
+    mo11 = np.loadtxt("mo11_gsmf_z2.txt")
+    plt.errorbar(10**mo11[:,0], 10**mo11[:,1], fmt='o',color="black",yerr=[10**(mo11[:,1]+mo11[:,2])-10**mo11[:,1], -10**(mo11[:,1]-mo11[:,2])+10**mo11[:,1]])
+    plt.xlim(10**7,10**11)
+    plt.xlabel(r"$M_* / M_\odot$")
+    plt.ylabel(r"$\Phi$ (Mpc$^{-3}$ dex$^{-1}$")
 
 if __name__ == "__main__":
+    do_stellar_mass_plot()
+    save_figure(path.join(outdir, "Cosmo_stellar_mass_z2"))
+    plt.clf()
     plot_voigt_cddf(4,25,5)
     save_figure(path.join(outdir,"civ_voigt_Cosmo4"))
     plt.clf()
@@ -141,8 +184,8 @@ if __name__ == "__main__":
     save_figure(path.join(outdir,"civ_Cosmo7_resolution"))
     plt.clf()
     plot_UVB_cddf()
-    save_figure(path.join("civ_UVB_double"))
+    save_figure(path.join(outdir,"civ_UVB_double"))
     plt.clf()
     plot_compare_others_cddf()
-    save_figure(path.join("civ_compare"))
+    save_figure(path.join(outdir,"civ_compare"))
     plt.clf()
