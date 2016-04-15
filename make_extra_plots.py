@@ -37,17 +37,17 @@ def plot_voigt_cddf(sim, box=25, snap=5):
     try:
         ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra_small.hdf5", spec_res=5.,load_halo=False)
     except IOError:
-        ahalo = rs.RandSpectra(snap, base, ndla=500, numlos=2000, thresh=1e12, res=5., savefile="rand_civ_spectra_small.hdf5", elem="C", ion=4)
+        ahalo = rs.RandSpectra(snap, base, ndla=1500, numlos=6000, thresh=1e11, res=5., savefile="rand_civ_spectra_small.hdf5", elem="C", ion=4)
         ahalo.get_tau("C",4,1548)
         ahalo.save_file()
-    (NHI_voigt, cddf_voigt) = ahalo.column_density_from_voigt("C", 4, line=1548, minN=11.5,maxN=16.5)
-    plt.loglog(NHI_voigt,cddf_voigt,color="red", label="Voigt", ls="--")
     (NHI, cddf) = ahalo.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
     plt.loglog(NHI,cddf,color="blue", label="Summation", ls="-")
+    (NHI_voigt, cddf_voigt) = ahalo.column_density_from_voigt("C", 4, line=1548, minN=11.5,maxN=16.5, close=50.)
+    plt.loglog(NHI_voigt,cddf_voigt,color="red", label="Voigt", ls="--")
     ax=plt.gca()
     ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
-    plt.xlim(10**11, 10**16)
+    plt.xlim(10**12, 10**15)
     plt.legend(loc=0)
 
 def plot_resolution_cddf(snap=3):
@@ -144,10 +144,28 @@ def plot_compare_others_cddf(sim=4):
     ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
 
+def plot_some_spectra(sim=4):
+    """Plot a few CIV spectra."""
+    base = myname.get_name(sim, box=25)
+    ahalo = CIVPlottingSpectra(5, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
+    maxt = np.max(ahalo.get_tau("C",4,1548), axis=1)
+    large = np.where((maxt > 4)*(maxt < 10))[0]
+    xlim=150
+    for ll in large[:30]:
+        ahalo.plot_spectrum("C",4,1548, ll, flux=True, xlims=(-500-3*xlim,xlim), color="black")
+        ahalo.plot_spectrum("C",4,1550, ll, flux=True, xlims=(-500-3*xlim,xlim), color="grey",ls="-",offset=-500)
+        save_figure(path.join(outdir,"spectra/civ_spectrum_"+str(ll)))
+        plt.clf()
+    small = np.where((maxt < 1)*(maxt > 0.2))[0]
+    for ll in small[:30]:
+        ahalo.plot_spectrum("C",4,1548, ll, flux=True, xlims=(-500-3*xlim,xlim), color="black")
+        ahalo.plot_spectrum("C",4,1550, ll, flux=True, xlims=(-500-3*xlim,xlim), color="grey",ls="-",offset=-500)
+        save_figure(path.join(outdir,"spectra/civ_spectrum_"+str(ll)))
+        plt.clf()
+
 def plot_stellar_mass_function(sim, snap=5):
     """Plot the galaxy stellar mass function for a snapshot."""
     base = myname.get_name(sim, box=25)
-#     ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=True)
     subs=subfindhdf.SubFindHDF5(base, snap)
     stellar_mass = subs.get_grp("GroupMassType")[:,4]*1e10/0.7
     #Could also use subhalo stellar mass: they are similar
@@ -160,6 +178,27 @@ def plot_stellar_mass_function(sim, snap=5):
     assert np.size(sm) == np.size(gsmf)
     gsmf = gsmf/volume/dlogM
     plt.loglog(sm, gsmf, color=colors[sim], ls=lss[sim], label=labels[sim])
+
+def plot_galactic_metallicity(sim, snap=5):
+    """Plot histograms of the stellar metallicity."""
+    base = myname.get_name(sim, box=25)
+    subs=subfindhdf.SubFindHDF5(base, snap)
+    stellar_metallicity = subs.get_grp("GroupStarMetallicity")
+    solarz = 0.0134/0.7381
+    bins = np.logspace(-8,0)
+    (metallicity,sm) = np.histogram(stellar_metallicity, bins=bins, density=True)
+    sm = (sm[1:]+sm[:-1])/2./solarz
+    plt.loglog(sm, metallicity, color=colors[sim], ls=lss[sim], label=labels[sim])
+
+def do_stellar_metallicity_plot(snap=5):
+    """Plot the galaxy stellar metallicity."""
+    for sim in (4,7,9):
+        plot_galactic_metallicity(sim, snap)
+    plt.legend(loc=0)
+    #This is from the MNRAS machine-readable table in http://arxiv.org/abs/1101.2867 z=2-2.5 bin.
+    plt.xlim(1e-6,1)
+    plt.xlabel(r"$Z / Z_\odot$")
+    plt.ylabel(r"Stellar metallicity PDF")
 
 def do_stellar_mass_plot(snap=5):
     """Plot the galaxy stellar mass function."""
@@ -174,11 +213,12 @@ def do_stellar_mass_plot(snap=5):
     plt.ylabel(r"$\Phi$ (Mpc$^{-3}$ dex$^{-1}$")
 
 if __name__ == "__main__":
+    plot_some_spectra(sim=4)
     do_stellar_mass_plot()
     save_figure(path.join(outdir, "Cosmo_stellar_mass_z2"))
     plt.clf()
-    plot_voigt_cddf(4,25,5)
-    save_figure(path.join(outdir,"civ_voigt_Cosmo4"))
+    do_stellar_metallicity_plot()
+    save_figure(path.join(outdir, "Cosmo_stellar_metallicity_z2"))
     plt.clf()
     plot_resolution_cddf()
     save_figure(path.join(outdir,"civ_Cosmo7_resolution"))
@@ -188,4 +228,7 @@ if __name__ == "__main__":
     plt.clf()
     plot_compare_others_cddf()
     save_figure(path.join(outdir,"civ_compare"))
+    plt.clf()
+    plot_voigt_cddf(4,25,5)
+    save_figure(path.join(outdir,"civ_voigt_Cosmo4"))
     plt.clf()
