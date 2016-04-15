@@ -59,7 +59,7 @@ def plot_line_density(sim, box, base, sss):
     plt.semilogy(reds, om_civ_low, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     plt.figure(4)
     plt.semilogy(reds, lciv03, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
-    np.savetxt("lciv_06_"+str(sim)+"_"+str(box)+".txt",np.hstack(reds, lciv))
+    np.savetxt("lciv_06_"+str(sim)+"_"+str(box)+".txt",np.vstack([reds, lciv]))
 
 def plot_eq_width(sim, snap, box):
     """Plot the CIV eq. width density function"""
@@ -76,7 +76,7 @@ def plot_eq_width(sim, snap, box):
     #ahalo.plot_cddf("C", 4, minN=12, maxN=15., color=colors[sim], moment=False)
     #plt.figure(2)
     (W,f_W) = ahalo.plot_eq_width_dist("C",4,1548, color=colors[sim], ls=lss[sim])
-    np.savetxt("eq_width_"+str(sim)+"_"+str(box)+"_"+str(snap)+".txt",np.hstack(W, f_W))
+    np.savetxt("eq_width_"+str(sim)+"_"+str(box)+"_"+str(snap)+".txt",np.vstack([W, f_W]))
 
 def calc_dodor_red(txtfile):
     """Calculate the redshift distribution of the D'Odorico 2010 CIV measurement."""
@@ -98,6 +98,7 @@ def get_snap_cddf(snap, base):
     """Get the cddf from one snapshot"""
     ahalo = CIVPlottingSpectra(snap, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
     return ahalo.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
+#     return ahalo.column_density_from_voigt("C", 4, line=1548, minN=11.5,maxN=16.5)
 
 def plot_cddf(sim, box):
     """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
@@ -121,7 +122,7 @@ def plot_cddf(sim, box):
     ax.set_xlabel(r"$N_\mathrm{CIV} (\mathrm{cm}^{-2})$")
     ax.set_ylabel(r"$f(N) (\mathrm{cm}^2)$")
     plt.xlim(10**12, 10**15)
-    np.savetxt("civ_cddf_"+str(sim)+"_"+str(box)+".txt",np.hstack(NHI, f_N))
+    np.savetxt("civ_cddf_"+str(sim)+"_"+str(box)+".txt",np.vstack([NHI, f_N]))
 
 def linear_cog_col(eqw, rwave, fosc):
     """Plot the column density expected from the equivalent width, assuming we are in the linear regime of the curve of growth.
@@ -202,14 +203,6 @@ if __name__ == "__main__":
     plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_cddf"))
     plt.clf()
-    plot_cddf(7,25)
-    plot_cddf(7,7.5)
-    plt.ylim(5e-19, 2e-12)
-    plt.xlim(1e12,1e16)
-    plt.legend(loc="lower left")
-    save_figure(path.join(outdir,"civ_cddf_resolution"))
-    plt.clf()
-    raise Exception
     #z=2 eq. width cddf
     plot_eq_width('I', 68, 75)
     for s in sims:
