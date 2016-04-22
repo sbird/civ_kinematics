@@ -208,9 +208,9 @@ def do_stellar_mass_plot(snap=5):
     #This is from the MNRAS machine-readable table in http://arxiv.org/abs/1101.2867 z=2-2.5 bin.
     mo11 = np.loadtxt("mo11_gsmf_z2.txt")
     plt.errorbar(10**mo11[:,0], 10**mo11[:,1], fmt='o',color="black",yerr=[10**(mo11[:,1]+mo11[:,2])-10**mo11[:,1], -10**(mo11[:,1]-mo11[:,2])+10**mo11[:,1]])
-    plt.xlim(10**7,10**11)
+    plt.xlim(5e7,1e11)
     plt.xlabel(r"$M_* / M_\odot$")
-    plt.ylabel(r"$\Phi$ (Mpc$^{-3}$ dex$^{-1}$")
+    plt.ylabel(r"$\Phi$ (Mpc$^{-3}$ dex$^{-1}$)")
 
 if __name__ == "__main__":
     plot_some_spectra(sim=4)
