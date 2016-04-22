@@ -50,12 +50,26 @@ def plot_voigt_cddf(sim, box=25, snap=5):
     plt.xlim(10**12, 10**15)
     plt.legend(loc=0)
 
-def plot_resolution_cddf(snap=3):
+def plot_resolution_cddf(snap=3, maxfac=1.):
     """Plot the effect of changing resolution on the CDDF."""
     base_large = myname.get_name(7, box=25)
     base_small = myname.get_name(7, box=7.5)
-    ahalo_large = CIVPlottingSpectra(snap, base_large, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
-    ahalo_small = CIVPlottingSpectra(snap, base_small, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
+    ahalo_large = CIVPlottingSpectra(snap, base_large, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=True)
+    ahalo_small = CIVPlottingSpectra(snap, base_small, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=True)
+    maxmass = np.max(ahalo_small.sub_mass)/maxfac
+    print("Max mass=",maxmass/1e10," was ",np.max(ahalo_large.sub_mass)/1e10)
+    print("Small box has ",np.size(np.where(ahalo_small.sub_mass > maxmass))," larger halos")
+    print("Larger box has ",np.size(np.where(ahalo_large.sub_mass > maxmass))," larger halos")
+    ahalo_large.get_col_density("C",4)
+    ahalo_small.get_col_density("C",4)
+    (halos_large,_) = ahalo_large.find_nearest_halo("C",4, thresh=50)
+    (halos_small,_) = ahalo_small.find_nearest_halo("C",4, thresh=50)
+    ind_large = np.where((ahalo_large.sub_mass[halos_large] < maxmass)*(halos_large > 0))
+    ind_small = np.where((ahalo_small.sub_mass[halos_small] < maxmass)*(halos_small > 0))
+    print("Now ",np.size(ind_large),np.size(ind_small)," spectra")
+    #Editing the private data like this is perilous
+    ahalo_large.colden[("C",4)] = ahalo_large.colden[("C",4)][ind_large]
+    ahalo_small.colden[("C",4)] = ahalo_small.colden[("C",4)][ind_small]
     (NHI_large, cddf_large) = ahalo_large.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
     plt.loglog(NHI_large,cddf_large,color="blue", label="25 Mpc Box", ls="-")
     (NHI_small, cddf_small) = ahalo_small.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
