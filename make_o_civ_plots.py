@@ -60,6 +60,7 @@ def plot_line_density(sim, box, base, sss):
     plt.figure(4)
     plt.semilogy(reds, lciv03, ls=lss[sim], color=colors[sim], label=labels[sim]+" "+str(box))
     np.savetxt("lciv_06_"+str(sim)+"_"+str(box)+".txt",np.vstack([reds, lciv]))
+    np.savetxt("om_civ_"+str(sim)+"_"+str(box)+".txt",np.vstack([reds, om_civ_low]))
 
 def plot_eq_width(sim, snap, box):
     """Plot the CIV eq. width density function"""
