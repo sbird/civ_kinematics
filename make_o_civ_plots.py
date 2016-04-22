@@ -199,7 +199,7 @@ if __name__ == "__main__":
     for s in sims:
         plot_cddf(s, 25)
     plot_dor_cddf()
-    plt.ylim(5e-19, 2e-12)
+    plt.ylim(5e-17, 2e-12)
     plt.xlim(1e12,1e16)
     plt.legend(loc="lower left", ncol=2)
     save_figure(path.join(outdir,"civ_cddf"))
