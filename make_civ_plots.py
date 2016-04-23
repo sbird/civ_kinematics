@@ -3,16 +3,15 @@
 """Make some plots of the velocity widths from the cosmo runs"""
 
 from __future__ import print_function
+import os.path as path
+import numpy as np
 import matplotlib
 matplotlib.use('PDF')
-
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 import civ_plots as ps
-import os.path as path
 import myname
-import numpy as np
 from save_figure import save_figure
 
 np.seterr(divide='raise',invalid='raise')
@@ -219,7 +218,7 @@ def hc_colden(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     save_figure(path.join(outdir,name+"_C_colden"+ahalo.label.replace(" ","_")))
     plt.clf()
 
-def hc_colden_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
+def hc_colden_par(ahalo, name="ion", ions=(2,3,4,5,-1)):
     """Plot the column densities for different CIV ions"""
     if 2 in ions:
         ahalo.plot_colden_par(color="deeppink",ls="-.",elem="C",ion=2,label="CII")
@@ -240,7 +239,7 @@ def hc_colden_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     save_figure(path.join(outdir,name+"_C_colden_par"+ahalo.label.replace(" ","_")))
     plt.clf()
 
-def hc_tau_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
+def hc_tau_par(ahalo, name="ion", ions=(2,3,4,5,-1)):
     """Plot the column densities for different CIV ions"""
     if 2 in ions:
         ahalo.plot_tau_par(color="deeppink",ls="-.",elem="C",ion=2,line=1334,label="CII")
@@ -255,95 +254,6 @@ def hc_tau_par(ahalo, upper=270, name="ion", ions=(2,3,4,5,-1)):
     save_figure(path.join(outdir,name+"_C_tau_par"+ahalo.label.replace(" ","_")))
     plt.clf()
 
-def qso_eq_width(ionname, elem, ion, line, name, ahalos):
-    """Plot covering fraction for QSO pairs"""
-    CGM_c = np.loadtxt("QPQ7eqW.dat")
-    for ahalo in ahalos:
-        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
-        ahalo.plot_eq_width(elem=elem, ion=ion, line=line)
-    plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"EW("+ionname+" "+str(line)+")")
-    #Rmin Rmax mpair Rmean W1334   sW1334  Rmean   mpair    W1548   sW1548
-    if ion == 4:
-        plt.errorbar(CGM_c[:,3], CGM_c[:,8], yerr = CGM_c[:,9], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
-    elif ion == 2:
-        plt.errorbar(CGM_c[:,3], CGM_c[:,4], yerr = CGM_c[:,5], fmt='o', xerr=[CGM_c[:,3]-CGM_c[:,0],CGM_c[:,1]-CGM_c[:,3]],ecolor="black")
-    else:
-        raise RuntimeError("No data for ion")
-    plt.ylim(0,1.0)
-    plt.legend()
-    save_figure(path.join(outdir,name+"_"+ionname+"_eq_width"))
-    plt.clf()
-
-def qso_colden_coverfrac(elem, ion, name, ahalos):
-    """Plot covering fraction for QSOs"""
-    CGM_c = np.loadtxt("QPQ6fc.dat")
-    for ahalo in ahalos:
-        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
-        ahalo.plot_covering_fraction_colden(cd_thresh=10**17.2,elem=elem, ion=ion)
-    plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(N_{HI} > 10^{17.2} \mathrm{cm}^{-2})$")
-    #Rmin Rmax mpair   fc1216     +1s    -1s
-    Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
-    plt.errorbar(Rmean, CGM_c[:,3], yerr = [CGM_c[:,4],CGM_c[:,5]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
-    plt.ylim(0,1.0)
-    plt.legend()
-    save_figure(path.join(outdir,name+"_HI_coverfrac"))
-    plt.clf()
-
-def qso_coverfrac(ionname, elem, ion, line, name, ahalos):
-    """Plot covering fraction for QSOs"""
-    CGM_c = np.loadtxt("QPQ7fc.dat")
-    for ahalo in ahalos:
-        ahalo.def_radial_bins = np.concatenate([CGM_c[:,0], [1000,]])
-        ahalo.plot_covering_fraction(elem=elem, ion=ion, line=line)
-    plt.xlabel("r perp (kpc)")
-    plt.ylabel(r"$F(W_{"+str(line)+r"} > 0.2 \AA)$")
-    #Rmin Rmax mpair   fc1334     +1s    -1s   mpair fc1548  +1s      -1s
-    Rmean = (CGM_c[:,0]+CGM_c[:,1])/2
-    if ion == 4:
-        plt.errorbar(Rmean, CGM_c[:,7], yerr = [CGM_c[:,8],CGM_c[:,9]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
-    elif ion == 2:
-        plt.errorbar(Rmean, CGM_c[:,3], yerr = [CGM_c[:,4], CGM_c[:,5]], fmt='o', xerr=[Rmean-CGM_c[:,0],CGM_c[:,1]-Rmean],ecolor="black")
-    else:
-        raise RuntimeError("No data for ion")
-    plt.ylim(0,1.0)
-    plt.legend()
-    save_figure(path.join(outdir,name+"_"+ionname+"_coverfrac"))
-    plt.clf()
-
-def do_qso_plots(name, ahalos):
-    """Equivalent width and covering fractions for quasars"""
-    qso_coverfrac("CIV", "C", 4, 1548, name, ahalos)
-    qso_coverfrac("CII", "C", 2, 1334, name, ahalos)
-    qso_eq_width("CII", "C", 2, 1334, name, ahalos)
-    qso_eq_width("CIV", "C", 4, 1548, name, ahalos)
-    qso_colden_coverfrac("H",1,name, ahalos)
-
-qsos = []
-#for i in (7,9):
-#   base = myname.get_name(i, box=25)
-#   qsos.append(ps.AggCIVPlot((3,4,5), base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors[i], label=labels[i], spec_res = 10.))
-
-base = path.expanduser("~/data/Illustris/")
-illsnaps = (60,63,65,66,68)
-qsos.append(ps.AggCIVPlot(illsnaps, base, numlos=35000, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=colors['I'], label=labels['I'], spec_res = 10.,load_halo=False,velsize=1500))
-
-do_qso_plots("qso", qsos)
-
-hc_colden(qsos[0], upper=1000, name="qso", ions=(2,4))
-
-for k in illsnaps:
-    qsos.append(ps.AggCIVPlot(k, base, redfile = "QSORperpred.txt", savefile="nr_qso_spectra.hdf5", color=None, label=labels['I']+" "+str(k), spec_res = 10.,load_halo=False, velsize=1500))
-
-do_qso_plots("small_qso", qsos)
-
-[plot_r_offsets(q) for q in qsos]
-plt.legend()
-save_figure(path.join(outdir,"QSO_illus_r_offset"))
-plt.clf()
-
-print "Done QSO"
 aahalos = []
 
 #Plot some properties of the small box only
