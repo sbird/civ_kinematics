@@ -49,12 +49,12 @@ def do_civ_plots(name, ahalos):
     CIV_eq_ratio(name, ahalos)
     generic_coverfrac("CIV", "C", 4, 1548, name, ahalos)
     generic_coverfrac("CII", "C", 2, 1334, name, ahalos)
-    generic_coverfrac("SiII", "Si", 2, 1526, name, ahalos)
+#     generic_coverfrac("SiII", "Si", 2, 1526, name, ahalos)
     HI_coverfrac(name, ahalos)
     generic_eq_width("CII", "C", 2, 1334, name, ahalos)
     generic_eq_width("CIV", "C", 4, 1548, name, ahalos)
-    generic_eq_width("SiII", "Si", 2, 1526, name, ahalos)
-    generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
+#     generic_eq_width("SiII", "Si", 2, 1526, name, ahalos)
+#     generic_eq_width("SiIV", "Si", 4, 1393, name, ahalos)
     #generic_eq_width("HI", "H", 1, 1216, name, ahalos)
 
 def collis_dist(name, ahalos):
@@ -359,13 +359,13 @@ for ss in (4,9,7): #Removed 3 and 1 as they don't match DLA properties
     aahalos.append(halo)
 
 #Add Illustris
-illhalo = ps.AggCIVPlot((63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "DLARperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
+illhalo = ps.AggCIVPlot((60,63,68), path.expanduser("~/data/Illustris/"),  numlos=14000, color=colors['I'], redfile = "DLARperpred.txt",savefile="nr_dla_spectra.hdf5", label=labels["I"], spec_res = 50.,load_halo=False)
 aahalos.append(illhalo)
 
-mass_hist("feed",(aahalos[0], aahalos[2]))
-collis_dist("feed", (aahalos[0],aahalos[2]))
+# mass_hist("feed",(aahalos[0], aahalos[2]))
+# collis_dist("feed", (aahalos[0],aahalos[2]))
 
-CIV_vel_offset("feed", [illhalo,])
+# CIV_vel_offset("feed", [illhalo,])
 do_civ_plots("feed",aahalos)
 
 [plot_r_offsets(a) for a in aahalos]
