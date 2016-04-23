@@ -62,8 +62,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         W_table = 10**np.arange(np.log10(minW), np.log10(maxW), dlogW)
         #W_table = np.arange(minW, maxW, dW)
         center = np.array([(W_table[i]+W_table[i+1])/2. for i in range(0,np.size(W_table)-1)])
-        width =  np.array([W_table[i+1]-W_table[i] for i in range(0,np.size(W_table)-1)])
-
+        width = np.diff(W_table)
         dX=self.units.absorption_distance(self.box, self.red)
         #equivalent width for each sightline
         eqw = self.equivalent_width(elem, ion, line)

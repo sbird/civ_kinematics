@@ -151,7 +151,7 @@ def plot_compare_others_cddf(sim=4):
     plt.loglog(NHI,cddf,color=colors[4], label=labels[4], ls=lss[4])
     (NHI_rah, cddf_rah) = load_rahmati()
     plt.loglog(NHI_rah,cddf_rah,color="brown", label="EAGLE", ls="--")
-    civ_data.plot_dor_cddf()
+#     civ_data.plot_dor_cddf()
     plt.legend(loc=0)
     plt.xlim(1e12,5e15)
     ax=plt.gca()

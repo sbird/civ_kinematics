@@ -370,8 +370,8 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
                 contig[ii] = self.box/2
                 continue
             maxx = np.where(np.max(lcolden) == lcolden)[0][0]
-            low = (maxx - vrange/self.dvbin)
-            high = (maxx + vrange/self.dvbin)
+            low = (maxx - vrange//self.dvbin)
+            high = (maxx + vrange//self.dvbin)
             # Find weighted z position for absorber
             nn = np.arange(self.nbins)[low:high]-roll[ii]
             llcolden = lcolden[low:high]
