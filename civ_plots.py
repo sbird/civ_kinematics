@@ -126,7 +126,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             c2 = cd[i+midpoint, :]
             rcd1 = np.roll(c1, self.nbins//2-maxx)
             rcd2 = np.roll(c2, self.nbins//2-maxx)
-            binwd = self.velsize//self.dvbin
+            binwd = self.velsize//int(self.dvbin)
             #Now compute summed columns +- N km/s from the center
             sumcd[i] = np.sum(rcd1[self.nbins//2-binwd:self.nbins//2+binwd])
             sumcd[i+midpoint] = np.sum(rcd2[self.nbins//2-binwd:self.nbins//2+binwd])
@@ -138,7 +138,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         midpoint = self.NumLos//2
         metal = self.get_col_density(elem,ion)[:midpoint]
         HI = self.get_col_density("H",1)[:midpoint]
-        binwd = self.velsize//self.dvbin
+        binwd = self.velsize//int(self.dvbin)
         sumcd = np.zeros((midpoint, binwd))
         #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
         #First find largest HI density
@@ -148,7 +148,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(his == np.max(his))[0][0]
             rcivs = np.roll(civs, self.nbins//2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd+1:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
+            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
         return sumcd
 
     def get_tau_par(self, elem, ion, line):
