@@ -30,7 +30,7 @@ def _bootstrap_sample(spectra, offsets, radial_bins, nsamples, error=0):
     """Generate a Monte Carlo error sample of some spectra."""
     # Generate some Monte Carlo samples where each element is perturbed by
     # a Gaussian, sigma given by error.
-    index = np.random.random_integers(0, np.size(spectra)-1, nsamples)
+    index = np.random.random_integers(0, np.size(spectra)-1, int(nsamples))
     bootstrap = spectra[index]
     bootoffsets = offsets[index]
     if error > 0.:
@@ -148,7 +148,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(his == np.max(his))[0][0]
             rcivs = np.roll(civs, self.nbins//2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
+            sumcd[i] = rcivs[self.nbins//2-binwd:self.nbins//2] + rcivs[self.nbins//2:self.nbins//2+binwd]
         return sumcd
 
     def get_tau_par(self, elem, ion, line):
@@ -157,7 +157,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
         midpoint = self.NumLos//2
         metal = self.get_tau(elem,ion, line)[:midpoint]
         HI = self.get_tau("H",1, 1215)[:midpoint]
-        binwd = self.velsize//self.dvbin
+        binwd = self.velsize//int(self.dvbin)
         sumcd = np.zeros((midpoint, binwd))
         #Find the areas of each spectrum which are less than 600 kms from the DLA on either side
         #First find largest HI density
@@ -167,7 +167,7 @@ class CIVPlot(ps.PlottingSpectra, laststar.LastStar):
             maxx = np.where(his == np.max(his))[0][0]
             rcivs = np.roll(civs, self.nbins//2-maxx)
             #Now compute summed columns +- N km/s from the center
-            sumcd[i] = rcivs[self.nbins//2:self.nbins//2-binwd+1:-1] + rcivs[self.nbins//2:self.nbins//2+binwd]
+            sumcd[i] = rcivs[self.nbins//2-binwd:self.nbins//2] + rcivs[self.nbins//2:self.nbins//2+binwd]
         return sumcd
 
     def get_most_recent(self, elem="C", ion=4):
@@ -473,10 +473,11 @@ class AggCIVPlot(object):
     def get_col_density_par(self, elem, ion):
         """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
         cd = [qq.get_colden_par(elem, ion) for qq in self.snaps]
-        agg = np.empty((np.sum(self.nlines), self.velsize//self.dvbin),dtype=cd[0].dtype)
+        binwd = self.velsize//int(self.dvbin)
+        agg = np.empty((np.sum(self.nlines), binwd),dtype=cd[0].dtype)
         total = 0
         for jj in xrange(np.shape(cd)[0]):
-            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
+            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:binwd]
             total += np.size(self.agg_map[jj])
         assert total == np.shape(agg)[0]
         return agg
@@ -484,10 +485,11 @@ class AggCIVPlot(object):
     def get_tau_par(self, elem, ion, line):
         """Get the column density parallel to the line of sight. Needs special handling because it has an odd shape."""
         cd = [qq.get_tau_par(elem, ion, line) for qq in self.snaps]
-        agg = np.empty((np.sum(self.nlines), self.velsize//self.dvbin),dtype=cd[0].dtype)
+        binwd = self.velsize//int(self.dvbin)
+        agg = np.empty((np.sum(self.nlines), binwd),dtype=cd[0].dtype)
         total = 0
         for jj in xrange(np.shape(cd)[0]):
-            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:]
+            agg[total:total+np.size(self.agg_map[jj]),:]= cd[jj][self.agg_map[jj],:binwd]
             total += np.size(self.agg_map[jj])
         assert total == np.shape(agg)[0]
         return agg
@@ -566,7 +568,7 @@ class AggCIVPlot(object):
         CIV = self.get_col_density_par(elem,ion)
         #Find DLA position
         mean_civ = np.mean(CIV, axis=0)
-        vbins = np.arange(0, self.velsize, self.dvbin)[:-1]
+        vbins = np.arange(0, self.velsize, self.dvbin)
         if label == None:
             label=self.label
         assert np.size(vbins) == np.size(mean_civ)
@@ -579,7 +581,7 @@ class AggCIVPlot(object):
         CIV = self.get_tau_par(elem,ion,line)
         #Find DLA position
         mean_civ = np.mean(CIV, axis=0)
-        vbins = np.arange(0, self.velsize, self.dvbin)[:-1]
+        vbins = np.arange(0, self.velsize, self.dvbin)
         if label == None:
             label=self.label
         assert np.size(vbins) == np.size(mean_civ)
