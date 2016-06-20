@@ -13,6 +13,7 @@ import civ_data
 import subfindhdf
 from civ_plotspectra import CIVPlottingSpectra
 from save_figure import save_figure
+from make_o_civ_plots import calc_dodor_red,get_snap_cddf
 try:
     xrange(1)
 except NameError:
@@ -140,6 +141,24 @@ def load_oppenheimer():
     f_N = nabs/dN/dX
     return nhi, f_N
 
+def plot_cddf(sim, box):
+    """Plot the cddf as compared to D'Odorico 2010, accounting for redshift distribution"""
+    #Load weights
+    weights = calc_dodor_red("reddodorico.txt")
+    #Which snapshots to weight
+    if box == 25 or 7.5:
+        snaps = (5,4,3,2)
+    base = myname.get_name(sim, box=box)
+    cddfs = [get_snap_cddf(snap, base) for snap in snaps]
+    #Idiom for unpacking a list
+    (NHI_snaps, f_Nsnaps) = zip(*cddfs)
+    NHI = np.mean(NHI_snaps,axis=0)
+    f_Nsnaps = np.array(f_Nsnaps)
+    f_N = np.sum([f_Nsnaps[i,:]*weights[i] for i in xrange(np.size(weights))],axis=0)
+    assert np.shape(NHI) == np.shape(f_N)
+    plt.loglog(NHI,f_N,color=colors[sim], label=labels[sim]+" z=2-4", ls=":")
+    ax=plt.gca()
+
 def plot_compare_others_cddf(sim=4):
     """Compare our results for the CIV cddf to those of other people, Ali Rahmati and Ben Oppenheimer.
     Because they just do it at z=2, use only one snapshot."""
@@ -148,7 +167,8 @@ def plot_compare_others_cddf(sim=4):
     plt.loglog(NHI_opp,cddf_opp,color="grey", label="Oppenheimer+2012", ls="-")
     ahalo = CIVPlottingSpectra(5, base, None, None, savefile="rand_civ_spectra.hdf5", spec_res=5.,load_halo=False)
     (NHI, cddf) = ahalo.column_density_function("C", 4, minN=11.5,maxN=16.5, line=False, close=50.)
-    plt.loglog(NHI,cddf,color=colors[4], label=labels[4], ls=lss[4])
+    plt.loglog(NHI,cddf,color="black", label=labels[4]+" z=2", ls=lss[4])
+    plot_cddf(sim, 25)
     (NHI_rah, cddf_rah) = load_rahmati()
     plt.loglog(NHI_rah,cddf_rah,color="brown", label="EAGLE", ls="--")
 #     civ_data.plot_dor_cddf()
