@@ -30,6 +30,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             #Extend as needed
             while np.max(rtau1[mdbn-(lbinwd +int(100/self.dvbin)):mdbn - lbinwd]) >= 0.1:
                 lbinwd += int(100/self.dvbin)
+            ubinwd = lbinwd
             #Doublet is cut off
             if line == 1548:
                 ubinwd = int(250/self.dvbin)
@@ -146,22 +147,22 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
 
     def _save_spectra_halos(self):
         """Save the computed spectra and distances to the savefile."""
-        f=h5py.File(self.savefile,'r+')
+        f=h5py.File(self.savefile)
         try:
-            del f["spectra"]["halos"]
-            del f["spectra"]["dist"]
+            del f["halos"]
+            del f["dist"]
         except KeyError:
             pass
-        f["spectra"]["halos"] = self.spectra_halos
-        f["spectra"]["dist"] = self.spectra_dists
+        f["halos"] = self.spectra_halos
+        f["dist"] = self.spectra_dists
         f.close()
 
     def _load_spectra_halos(self):
         """Save the computed spectra and distances to the savefile."""
         f=h5py.File(self.savefile,'r')
         try:
-            self.spectra_halos = np.array(f["spectra"]["halos"])
-            self.spectra_dists = np.array(f["spectra"]["dist"])
+            self.spectra_halos = np.array(f["halos"])
+            self.spectra_dists = np.array(f["dist"])
         finally:
             f.close()
 
@@ -174,7 +175,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
             try:
                 self._load_spectra_halos()
                 return (self.spectra_halos, self.spectra_dists)
-            except KeyError:
+            except (KeyError, OSError):
                 pass
         zpos = self.get_contiguous_regions(elem=elem, ion=ion, thresh = thresh)
         (halos, dists) = self.assign_to_halo(zpos=zpos, halo_radii=self.sub_radii, halo_cofm=self.sub_cofm, maxdist=maxdist)
@@ -303,7 +304,7 @@ class CIVPlottingSpectra(ps.PlottingSpectra):
         vrange = thresh
         den = self.get_col_density(elem, ion)
         contig = np.zeros(self.NumLos,dtype=np.float)
-        (roll, colden) = ps.spectra._get_rolled_spectra(den)
+        (roll, colden) = ps.spectra.spec_utils.get_rolled_spectra(den)
         #deal with periodicity by making sure the deepest point is in the middle
         for ii in xrange(self.NumLos):
             # This is column density, not absorption, so we cannot
