@@ -4,8 +4,8 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 import numpy as np
 import os.path as path
-import plot_spectra as ps
-import line_data
+import fake_spectra.plot_spectra as ps
+import fake_spectra.line_data
 import numexpr as ne
 import h5py
 from save_figure import save_figure
