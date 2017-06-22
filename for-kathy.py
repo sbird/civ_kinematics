@@ -126,6 +126,12 @@ ahalo.save_eqw_txt_data("Si",4,1402)
 ahalo.save_eqw_txt_data("Mg",2,2796)
 ahalo.save_eqw_txt_data("Mg",2,2803)
 
+ahalo.save_vw_txt_data("C",4,1548)
+ahalo.save_vw_txt_data("C",4,1550)
+ahalo.save_vw_txt_data("Si",4,1393)
+ahalo.save_vw_txt_data("Si",4,1402)
+ahalo.save_vw_txt_data("Mg",2,2796)
+ahalo.save_vw_txt_data("Mg",2,2803)
 #This is the nearest halo in units of
 #virial radius to the mass-weighted CIV spectrum density.
 (halos, dists) = ahalo.find_nearest_halo()
